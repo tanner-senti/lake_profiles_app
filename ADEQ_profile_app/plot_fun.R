@@ -92,12 +92,12 @@ profilePlotAR <- function(data,
     cex.lab = 1.5
   )
   axis(3, cex.axis = 1.25)
-  abline(
-    h = tc_depth,
-    col = "purple",
-    lwd = 2,
-    lty = 2
-  )
+  # abline(
+  #   h = tc_depth,
+  #   col = "purple",
+  #   lwd = 2,
+  #   lty = 2
+  # )
   abline(h = 0, lwd = 1, lty = 3)
   if (!missing(do_crit)) {
     abline(
@@ -178,8 +178,8 @@ profilePlotAR <- function(data,
       #        unit_table[unit_table$param_name == "do", 2], ")"),
       # paste0("Temperature (",
       #        unit_table[unit_table$param_name == "temp", 2], ")"),
-      "pH",
-      "Thermocline"
+      "pH"#,
+     # "Thermocline"
     ),
     pch = c(24, 21, 22, NA),
     pt.bg = c("deepskyblue3",
