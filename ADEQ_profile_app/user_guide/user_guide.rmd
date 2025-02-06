@@ -7,86 +7,93 @@ editor_options:
     wrap: sentence
 ---
 
-## Introduction
+## **Introduction** 
 
-This application is designed to interactively visualize lake profile data collected by ADEQ.
+This application is designed to interactively visualize lake profile data collected by Arkansas Division of Environmental Quality (ADEQ). 
 
 \
-Disclaimer: This app is a DRAFT modified from the original app created by Utah DWQ. Source code and additional information for the original application are available via the [DWQ Lake Profile Dashboard GitHub repository](https://github.com/utah-dwq/LakeProfileDashboard) .\
-This application is available under an [MIT license](https://github.com/utah-dwq/LakeProfileDashboard/blob/master/LICENSE) .\
-<br>
+Disclaimer: This app is a DRAFT modified from the original app created by Utah Division of Water Quality (DWQ).
+The source code that this application was developed from and additional information for the original application are available via the [Utah DWQ Lake Profile Dashboard GitHub repository](https://github.com/utah-dwq/LakeProfileDashboard). 
+\
+This application is available under an [MIT license](https://github.com/utah-dwq/LakeProfileDashboard/blob/master/LICENSE).
+Much of the associated text within this section is also edited from the original Utah DEQ app language.
+<br> 
 
-## Deploying the app and hosting:
+**Deploying the app and hosting:** 
 
-Currently this app utilizes [shinyapps.io](shinyapps.io) to host and deploy on a publicly accessible URL.
-Shinyapps.io has several pricing plans for hosting apps - the current plan is free and has a maximum of 5 apps and 25 active hours/month.
-There are several other pricing points with increasing number of applications and active hours, however only the highest tier allows custom domains.
+Currently this app utilizes [shinyapps.io](https://shinyapps.io/) to host and deploy on a publicly accessible URL.
+[Shiny Server](https://posit.co/products/open-source/shiny-server/) is another hosting option for those interested, and each department's IT office may have their own hosting solutions. 
 
-There are other options for hosting, such as [Shiny Server](https://posit.co/products/open-source/shiny-server/), and IT may have their own solutions.
+Due to hosting restrictions this app can only handle limited web traffic.
+If the map becomes unavailable, please contact [ADEQ's Water Quality Planning branch](https://www.adeq.state.ar.us/water/planning/) for access to lake profile data. 
+<br> 
 
-After deploying to an active URL, the app can be embedded directly into any ADEQ webpage using an [HTML iframe](https://shiny.oxshef.io/deploy_embedding-shiny-apps).
-Thus a custom domain may not be necessary, but we will likely need to create a shinyapps.io account for ADEQ and subscribe to a higher tier for more active hours.
-
-## Data
+**Data** 
 
 Data must be updated by ADEQ manually.
-Set interval for uploading new data?
+Data will be updated quarterly each year and will be reflective of the lake profiles collected during that time. 
 
 The data used in this application are collected as water column profiles at lake sites throughout Arkansas.
-Lake profiles consist of measurements of dissolved oxygen, temperature, and pH at regular depth intervals through the water column.
+Lake profiles consist of measurements of dissolved oxygen (mg/L), temperature (°C), and pH at regular depth intervals through the water column.
 Data have been pre-processed to ensure consistency in parameter names and units.
-<br>
+<br> 
 
-## Application usage
+**Application usage** 
 
 The application has two main inputs: a map and a table.
-To build plots for any individual site, click on your desired site in either the map or the table.
+To build plots for any individual site, click on your desired site in either the map or the table. 
 
-The map shows all sites with profile data available.
-The table shows all of those sites and their associated uses and assessments for each parameter.
-The map and table inputs are responsive to each other.
-When you click a site on the map, the table will automatically filter to assessments associated with that site.
-When you click on a row in the table, the map will automatically fly to that site location.
+By default, only the sites with available data are shown.
+The map and table inputs are responsive to each other, and thus when you click a site on the map the table will automatically filter to profile data associated with that site.
+When you click on a row in the table, the map will automatically direct you to that site location. 
 
-Plots specific to that site will be rendered automatically.
-Outputs will automatically render any time the user updates one of the input widgets.
-<br>
+Plots and outputs specific to that site will be rendered automatically any time the user updates one of the input widgets.
+<br> 
 
-## Map elements
+**Map elements** 
 
-Individual monitoring locations are displayed as circle markers on the map.
-By default, only locations with available data are shown.
-In addition to displaying sites with profile data, all lake monitoring sites are available as a map layer.
-Topographic and satellite base layers are both available.
-To turn on any of these layers, hover the mouse over the layers control box (top left of map, under zoom buttons) and select one or more layers.
+Individual lake monitoring locations are displayed as red circle markers on the map.
+Only locations with available data will be shown.
+While all lake monitoring sites are available as a map layer, not all sites will have routinely monitored vertical depth profile data.
+Topographic and satellite base layers are also both available.
+To turn on any of these layers, hover the mouse over the layers control box and select one or more layers (Figure 1). 
 
-![](map.png)\
-Figure 1.
-Map usage guide.
-<br> <br>
+![](map.png){style="display: block; margin: 1em auto;" width="503"}
 
-## Outputs
+```{=html}
+<center> Figure 1. Map usage guide. </center>
+```
+<br> 
 
-### Individual profiles
+### **Outputs** 
+
+**Individual profiles** 
 
 The "Individual profiles" tab shows two outputs for a single profile collected at the selected site and date.
-The first is a plot of temperature, dissolved oxygen, and pH against depth, with calculated thermocline (if possible).
+The first is a plot of dissolved oxygen (mg/L), temperature (°C), and pH against depth (m).
 The second output is a scrollable table of the data from that profile used to generate the plot.
 <br>
 
-### Site profiles (all dates)
+**Site profiles (all dates)** 
 
 The "Site profiles" tab shows three outputs for a single site.
-Plots of DO (mg/L), pH, and Temperature (\*C) against depth are displayed across all available dates.
-The date ranges used in these plots can be adjusted with the date range slider at the top of the page.
-These profile plots are useful for comparing parameter changes over time.
+Plots of dissolved oxygen (mg/L), pH, and temperature (°C) against depth (m) are displayed across all available dates.
+The date ranges used in these plots can be adjusted with the date range slider at the top of the page (Figure 2). 
+ 
 
-## Help & feedback
+![](date_slider.png){style="display: block; margin: 1em auto;" width="493"}
 
-Contact information for help/feedback here
+```{=html}
+<center> Figure 2. Site profile date slider guide. </center>
+```
+<br> 
 
-[Official Webpage for Arkansas Division of Environmental Quality - Office of Water Quality](https://www.adeq.state.ar.us/water/)
+**Help & Feedback/Credit** 
 
-Modified by Tanner Senti, Arkansas Division of Environmental Quality
+Contact information for help/feedback can be found here: 
 
-Original app by Jake Vander Laan, Utah Division of Water Quality
+[Official Webpage for Arkansas Division of Environmental Quality - Office of Water Quality](https://www.adeq.state.ar.us/water/) 
+
+Application modified for ADEQ use by Tanner Senti, Arkansas Division of Environmental Quality 
+
+Original app by Jake Vander Laan, Utah Division of Water Quality 
