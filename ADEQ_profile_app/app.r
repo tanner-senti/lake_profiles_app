@@ -1,15 +1,13 @@
 ## Modified app by Tanner Senti (2024-12-31)
-# FROM:
 
-### Utah DWQ Lake Profile Dashboard
-### Jake Vander Laan, Utah DWQ, jvander@utah.gov
-### Version 1.1, Feb 8 2019
+# Data come from "lake_profiles_graphing" project at
+# E:\LAKES\Quarterly Lakes Study\2023 - 2026 Lakes Study\Lake Profiles
 
 library(magrittr)
 library(dplyr)
 library(leaflet)
 library(markdown)
-library(wqTools)
+#library(wqTools)
 library(ggplot2)
 library(gridExtra)
 
@@ -87,24 +85,30 @@ ui <- fluidPage(
              tabPanel(
                "Individual profiles",
                fluidRow(column(4, uiOutput("date_select"))),
-               fluidRow(column(
-                 4,
-                 h4("Profile plot:"),
-                 plotOutput("ind_prof_plot", height = "500px")
+               fluidRow(
+                 column(
+                   12,
+                   h4("Profile plot:"),
+                   div(plotOutput("ind_prof_plot", height = "500px"), style = "max-width: 600px")
+                 )
                ),
-               column(
-                 8,
-                 h4("Profile data:"),
-                 div(DT::dataTableOutput("profile_table"), style = "font-size:80%")
-               ))
+               fluidRow(
+                 column(
+                   12,
+                   h4("Profile data table:"),
+                   div(DT::dataTableOutput("profile_table"), style = "font-size:80%; max-width: 800px;")
+                 )
+               )
+               
+               
              ),
              tabPanel(
                "Site profiles (all dates)",
                fluidRow(column(4, uiOutput("date_slider"))),
                fluidRow(column(
-                 8,
+                 12,
                  h4("Parameter profiles:"),
-                 plotOutput("site_prof_plot", height = "500px")
+                 div(plotOutput("site_prof_plot", height = "600px"), style = "max-width: 800px")
                ))
              ),
            ))
