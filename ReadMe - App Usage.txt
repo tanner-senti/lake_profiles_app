@@ -12,3 +12,9 @@ Simply make sure all relevant packages are installed, then open the "app.R" file
 Run App in the top right corner of RStudio.
 
 A deployed example of this app is available at: https://i24os8-tanner-senti.shinyapps.io/ADEQ_Lakes_Profiles/
+
+PLEASE NOTE:
+This app is currently stored in the E: drive at:
+E:\LAKES\Quarterly Lakes Study\2023 - 2026 Lakes Study\Lake Profiles\lake_profiles_app
+
+I have also placed a shortcut to this folder in E:\R Shiny apps
