@@ -9,6 +9,17 @@ site_plottingAR <- function(site_data) {
   
   site_id <- unique(site_data$SiteID)
   
+  # Creating a custom theme for text size:
+  my_theme <- theme_classic(12) +
+    theme(
+      axis.title = element_text(size = 16),  # Larger axis titles
+      axis.text = element_text(size = 14),                  # Larger tick labels
+      plot.title = element_text(size = 18),  # Larger plot titles
+      legend.title = element_text(size = 14),               # Larger legend title
+      legend.text = element_text(size = 12)                 # Larger legend text
+    )
+  
+  
   # Plotting:
   
   # DO:
@@ -18,8 +29,8 @@ site_plottingAR <- function(site_data) {
     geom_line(orientation = "y") +
     scale_y_reverse() +
     scale_x_continuous(position = "top")  +
-    labs(x = "DO (mg/L)", y = "Depth (m)") +
-    theme_classic(12)
+    labs(x = "Dissolved oxygen (mg/L)", y = "Depth (m)") +
+    my_theme
   
   # pH:
   ph_p <- ggplot(site_data) + 
@@ -29,7 +40,7 @@ site_plottingAR <- function(site_data) {
     scale_y_reverse() + 
     scale_x_continuous(position = "top")  +
     labs(x="pH", y="Depth (m)") +
-    theme_classic(12)
+    my_theme
   
   # Temp:
   temp_p <- ggplot(site_data) + 
@@ -38,10 +49,16 @@ site_plottingAR <- function(site_data) {
     geom_line(orientation = "y") +
     scale_y_reverse() + 
     scale_x_continuous(position = "top")  +
-    labs(x="Temp (*C)", y="Depth (m)") +
-    theme_classic(12)
+    labs(x="Temperature (\u00B0C)", y="Depth (m)") +
+    my_theme
+  
+  # Add title to the grid with larger font size
+  title <- grid::textGrob(
+    paste(site_id),
+    gp = grid::gpar(fontsize = 20)  # Increase fontsize as needed
+  )
   
   # Display plots in a grid:
-  grid.arrange(do_p, ph_p, temp_p, ncol = 2)
+  grid.arrange(do_p, ph_p, temp_p, ncol = 2, top = title)
   
 }

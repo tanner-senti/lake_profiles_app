@@ -47,6 +47,9 @@ profilePlotAR <- function(data,
   param_names$param_name = row.names(param_names)
   data = merge(data, param_names, all.x = T)
   
+  # Getting siteid
+  site_id <- unique(data$SiteID)
+  
   # if (any(length(unique(data[, units][data[, parameter] ==
   #                                     do])) > 1,
   #         length(unique(data[, units][data[, parameter] ==
@@ -73,7 +76,7 @@ profilePlotAR <- function(data,
   prof_matrix = prof_matrix[order(prof_matrix$depth),]
   tc_data = aggregate(temp ~ depth, data = prof_matrix, FUN = "mean")
   tc_depth = rLakeAnalyzer::thermo.depth(tc_data$temp, tc_data$depth)
-  par(mar = c(7.1, 5.1, 3.1, 2.1))
+  par(mar = c(7.1, 5.1, 5.6, 2.1))
   plot(
     depth ~ temp,
     prof_matrix,
@@ -91,6 +94,7 @@ profilePlotAR <- function(data,
     cex.axis = 1.25,
     cex.lab = 1.5
   )
+  title(main = site_id, font.main = 1, cex.main = 1.8)
   axis(3, cex.axis = 1.25)
   # abline(
   #   h = tc_depth,
@@ -172,8 +176,8 @@ profilePlotAR <- function(data,
     col = c("black",
             "black", "black", "purple"),
     legend = c(
-      "Dissolved oxygen (mg/L",
-      "Temperature (*C)",
+      "Dissolved oxygen (mg/L)",
+      "Temperature (\u00B0C)",
       # paste0("Dissolved oxygen (",
       #        unit_table[unit_table$param_name == "do", 2], ")"),
       # paste0("Temperature (",

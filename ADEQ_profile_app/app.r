@@ -98,18 +98,24 @@ ui <- fluidPage(
                    h4("Profile data table:"),
                    div(DT::dataTableOutput("profile_table"), style = "font-size:80%; max-width: 800px;")
                  )
-               )
+               ),
+               br()
                
                
              ),
              tabPanel(
                "Site profiles (all dates)",
-               fluidRow(column(4, uiOutput("date_slider"))),
+                # fluidRow(column(4, uiOutput("date_slider"))),
+               fluidRow(
+                 column(4, uiOutput("start_date_select")),
+                 column(4, uiOutput("end_date_select"))
+               ),
                fluidRow(column(
                  12,
                  h4("Parameter profiles:"),
                  div(plotOutput("site_prof_plot", height = "600px"), style = "max-width: 800px")
-               ))
+               )),
+               br()
              ),
            ))
   )
@@ -328,18 +334,43 @@ server <- function(input, output, session) {
                 reactive_objects$profile_dates)
   })
   
-  # Date slider for combined profile plots:
-  output$date_slider <- renderUI({
+  # Date slider for combined profile plots (original usage, converted to two box drop downs):
+  # output$date_slider <- renderUI({
+  #   req(reactive_objects$profile_dates)
+  #   date_min = min(reactive_objects$profile_dates)
+  #   date_max = max(reactive_objects$profile_dates)
+  #   sliderInput(
+  #     "date_slider",
+  #     "Date range:",
+  #     min = date_min,
+  #     max = date_max,
+  #     value = c(date_min, date_max)
+  #   )
+  # })
+  
+  # NEW date drop downs instead of slider:
+  # Render start date dropdown
+  output$start_date_select <- renderUI({
     req(reactive_objects$profile_dates)
-    date_min = min(reactive_objects$profile_dates)
-    date_max = max(reactive_objects$profile_dates)
-    sliderInput(
-      "date_slider",
-      "Date range:",
-      min = date_min,
-      max = date_max,
-      value = c(date_min, date_max)
-    )
+    date_choices <- reactive_objects$profile_dates
+    selectInput("start_date",
+                "Start date:",
+                choices = date_choices,
+                selected = min(date_choices))
+  })
+  
+  # Render end date dropdown with filtered choices
+  output$end_date_select <- renderUI({
+    req(reactive_objects$profile_dates, input$start_date)
+    date_choices <- reactive_objects$profile_dates
+    
+    # Filter dates to only show those after start_date
+    valid_end_dates <- date_choices[date_choices >= input$start_date]
+    
+    selectInput("end_date",
+                "End date:",
+                choices = valid_end_dates,
+                selected = max(valid_end_dates))
   })
   
   # Generate selected aid
@@ -418,13 +449,23 @@ server <- function(input, output, session) {
                       backgroundColor = DT::styleEqual(1, "orange"))
   })
   
-  # Site profiles (all dates) plotting - uses profiles wide:----
+  # Site profiles (all dates) plotting - uses profiles wide (OLD, for slider):----
+  # observe({
+  #   req(reactive_objects$sel_mlid, input$date_slider)
+  #   
+  #   reactive_objects$sel_profs_wide = profiles_wideAR[profiles_wideAR$SiteID == reactive_objects$sel_mlid &
+  #                                                       profiles_wideAR$Date >= input$date_slider[1] &
+  #                                                       profiles_wideAR$Date <= input$date_slider[2]
+  #                                                     ,]
+  # })
+  
+  # Site profiles (all dates) plotting - uses profiles wide (NEW):
   observe({
-    req(reactive_objects$sel_mlid, input$date_slider)
+    req(reactive_objects$sel_mlid, input$start_date, input$end_date)
     
     reactive_objects$sel_profs_wide = profiles_wideAR[profiles_wideAR$SiteID == reactive_objects$sel_mlid &
-                                                        profiles_wideAR$Date >= input$date_slider[1] &
-                                                        profiles_wideAR$Date <= input$date_slider[2]
+                                                        profiles_wideAR$Date >= input$start_date &
+                                                        profiles_wideAR$Date <= input$end_date
                                                       ,]
   })
   
