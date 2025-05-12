@@ -24,7 +24,7 @@ ui <- fluidPage(
     tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
                 type = "text/javascript")
   ),
-  
+
   # Header
   headerPanel(
     title = tags$a(
@@ -37,18 +37,22 @@ ui <- fluidPage(
       target = "_blank"
     ),
   ),
-  # Disclaimer or heading if needed:
-  fluidRow(column(p(
-    "Lakes Profiles Dashboard"
+  # Heading under the logo:
+  fluidRow(
+    column(12, h3("Lake Vertical Profiles Dashboard", style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"))
   ),
-  width = 2)),
+  # Disclaimer text if needed:
+  # fluidRow(column(p(
+  #   "Lakes Profiles Dashboard"
+  # ),
+  # width = 2)),
   # User guide button:
   fluidRow(column(
-    2, actionButton("show_guide", "Show User Guide")
+    2, actionButton("show_guide", "Show User Guide", style = "margin-top: 10px;")
   )),
-  
+
   br(),
-  
+
   # Input widgets
   fluidRow(
     column(
@@ -100,8 +104,8 @@ ui <- fluidPage(
                  )
                ),
                br()
-               
-               
+
+
              ),
              tabPanel(
                "Site profiles (all dates)",
@@ -118,7 +122,12 @@ ui <- fluidPage(
                br()
              ),
            ))
+  ),
+  tags$footer(
+    "Arkansas Department of Environmental Quality - Lake Vertical Profiles Dashboard",
+    style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
   )
+  
 )
 
 

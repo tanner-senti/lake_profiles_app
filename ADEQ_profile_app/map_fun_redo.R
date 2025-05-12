@@ -78,7 +78,7 @@ buildMapAR_redo <-
       lng = site_coords$Longitude,
       group = NULL,
       # No specific group to keep this layer always visible
-      color = pal(site_coords$locationType),
+      color = "#0DA5B5",
       opacity = 0.8,
       layerId = site_coords$locationID,
       options = pathOptions(pane = "markers"),
@@ -105,7 +105,7 @@ buildMapAR_redo <-
         lat = nodata_coords$Latitude,
         lng = nodata_coords$Longitude,
         group = "All Locations",
-        color = pal(nodata_coords$locationType),
+        color = "#0DA5B5",
         opacity = 0.8,
         layerId = nodata_coords$locationID,
         options = pathOptions(pane = "markers"),
@@ -161,7 +161,7 @@ buildMapAR_redo <-
     map <- addLegend(
       map,
       position = "topright",
-      colors = unique(pal(site_coords$locationType)),
+      colors = "#0DA5B5",
       labels = unique(site_coords$locationType)
     )
     
