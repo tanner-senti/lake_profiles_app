@@ -25,7 +25,7 @@ Currently this app utilizes [shinyapps.io](https://shinyapps.io/) to host and de
 [Shiny Server](https://posit.co/products/open-source/shiny-server/) is another hosting option for those interested, and each department's IT office may have their own hosting solutions. 
 
 Due to hosting restrictions this app can only handle limited web traffic.
-If the map becomes unavailable, please contact [ADEQ's Water Quality Planning branch](https://www.adeq.state.ar.us/water/planning/) for access to lake profile data. 
+If the map becomes unavailable, please contact [ADEQ's Water Quality Planning Branch](https://www.adeq.state.ar.us/water/planning/) for access to lake profile data. 
 <br> 
 
 **Data** 
@@ -52,7 +52,7 @@ Plots and outputs specific to that site will be rendered automatically any time 
 
 **Map elements** 
 
-Individual lake monitoring locations are displayed as red circle markers on the map.
+Individual lake monitoring locations are displayed as blue circle markers on the map.
 Only locations with available data will be shown.
 While all lake monitoring sites are available as a map layer, not all sites will have routinely monitored vertical depth profile data.
 Topographic and satellite base layers are also both available.
@@ -78,7 +78,7 @@ The second output is a scrollable table of the data from that profile used to ge
 
 The "Site profiles" tab shows three outputs for a single site.
 Plots of dissolved oxygen (mg/L), pH, and temperature (°C) against depth (m) are displayed across all available dates.
-The date ranges used in these plots can be adjusted with the date range slider at the top of the page (Figure 2). 
+The date ranges used in these plots can be adjusted with the date range dropdowns at the top of the page (Figure 2). 
  
 
 ![](date_slider.png){style="display: block; margin: 1em auto;" width="493"}

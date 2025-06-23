@@ -5,7 +5,7 @@ account: i24os8-tanner-senti
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 13617969
-bundleId: 10270844
+bundleId: 10282900
 url: https://i24os8-tanner-senti.shinyapps.io/ADEQ_Lakes_Profiles/
 version: 1
 asMultiple: FALSE
