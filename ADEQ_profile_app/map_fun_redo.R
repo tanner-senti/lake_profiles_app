@@ -59,13 +59,13 @@ buildMapAR_redo <-
       leaflet(options = leafletOptions(preferCanvas = TRUE, dragging = dragging), ...)
     map <- addProviderTiles(
       map,
-      "Esri.WorldImagery",
+      "USGS.USImagery",
       group = "Satellite",
       options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)
     )
     map <- addProviderTiles(
       map,
-      "Esri.WorldTopoMap",
+      "OpenStreetMap",
       group = "Topo",
       options = providerTileOptions(updateWhenZooming = FALSE, updateWhenIdle = TRUE)
     )
