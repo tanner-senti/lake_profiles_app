@@ -124,7 +124,7 @@ ui <- fluidPage(
            ))
   ),
   tags$footer(
-    "Arkansas Department of Environmental Quality - Lake Vertical Profiles Dashboard",
+    "Arkansas Division of Environmental Quality - Lake Vertical Profiles Dashboard",
     style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
   )
   
