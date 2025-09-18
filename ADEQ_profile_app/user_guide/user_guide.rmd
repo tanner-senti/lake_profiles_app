@@ -63,6 +63,7 @@ To turn on any of these layers, hover the mouse over the layers control box and 
 ```{=html}
 <center> Figure 1. Map usage guide. </center>
 ```
+
 <br> 
 
 ### **Outputs** 
@@ -86,6 +87,7 @@ The date ranges used in these plots can be adjusted with the date range dropdown
 ```{=html}
 <center> Figure 2. Site profile date slider guide. </center>
 ```
+
 <br> 
 
 **Help & Feedback/Credit** 

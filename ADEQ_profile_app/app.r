@@ -21,8 +21,10 @@ source("ADEQ_plot_fun.R")
 
 ui <- fluidPage(
   tags$head(
-    tags$script(src = "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
-                type = "text/javascript")
+    tags$script(
+      src = "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
+      type = "text/javascript"
+    )
   ),
 
   # Header
@@ -39,7 +41,13 @@ ui <- fluidPage(
   ),
   # Heading under the logo:
   fluidRow(
-    column(12, h3("Lake Vertical Profiles Dashboard", style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"))
+    column(
+      12,
+      h3(
+        "Lake Vertical Profiles Dashboard",
+        style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"
+      )
+    )
   ),
   # Disclaimer text if needed:
   # fluidRow(column(p(
@@ -48,7 +56,8 @@ ui <- fluidPage(
   # width = 2)),
   # User guide button:
   fluidRow(column(
-    2, actionButton("show_guide", "Show User Guide", style = "margin-top: 10px;")
+    2,
+    actionButton("show_guide", "Show User Guide", style = "margin-top: 10px;")
   )),
 
   br(),
@@ -57,79 +66,88 @@ ui <- fluidPage(
   fluidRow(
     column(
       5,
-      conditionalPanel(condition = "input.plot_tabs!='User guide'",
-                       tabsetPanel(
-                         id = "ui_tab",
-                         tabPanel(
-                           "Map",
-                           column(12,
-                                  h4("Click a site to display plots")),
-                           column(
-                             12,
-                             shinycssloaders::withSpinner(
-                               leaflet::leafletOutput("map", height = "600px"),
-                               size = 2,
-                               color = "#0080b7"
-                             )
-                           )
-                         ),
-                         tabPanel("Table",
-                                  column(
-                                    12,
-                                    h4("Click a site to display plots"),
-                                    div(DT::dataTableOutput("table_input"), style = "font-size:70%")
-                                  ))
-                       )),
-      conditionalPanel(condition = "input.plot_tabs=='User guide'",
-                       column(12))
+      conditionalPanel(
+        condition = "input.plot_tabs!='User guide'",
+        tabsetPanel(
+          id = "ui_tab",
+          tabPanel(
+            "Map",
+            column(12, h4("Click a site to display plots")),
+            column(
+              12,
+              shinycssloaders::withSpinner(
+                leaflet::leafletOutput("map", height = "600px"),
+                size = 2,
+                color = "#0080b7"
+              )
+            )
+          ),
+          tabPanel(
+            "Table",
+            column(
+              12,
+              h4("Click a site to display plots"),
+              div(DT::dataTableOutput("table_input"), style = "font-size:70%")
+            )
+          )
+        )
+      ),
+      conditionalPanel(condition = "input.plot_tabs=='User guide'", column(12))
     ),
-    column(7,
-           tabsetPanel(
-             id = "plot_tabs",
-             tabPanel(
-               "Individual profiles",
-               fluidRow(column(4, uiOutput("date_select"))),
-               fluidRow(
-                 column(
-                   12,
-                   h4("Profile plot:"),
-                   div(plotOutput("ind_prof_plot", height = "500px"), style = "max-width: 600px")
-                 )
-               ),
-               fluidRow(
-                 column(
-                   12,
-                   h4("Profile data table:"),
-                   div(DT::dataTableOutput("profile_table"), style = "font-size:80%; max-width: 800px;")
-                 )
-               ),
-               br()
-
-
-             ),
-             tabPanel(
-               "Site profiles (all dates)",
-                # fluidRow(column(4, uiOutput("date_slider"))),
-               fluidRow(
-                 column(4, uiOutput("start_date_select")),
-                 column(4, uiOutput("end_date_select"))
-               ),
-               fluidRow(column(
-                 12,
-                 h4("Parameter profiles:"),
-                 div(plotOutput("site_prof_plot", height = "600px"), style = "max-width: 800px")
-               )),
-               br()
-             ),
-           ))
+    column(
+      7,
+      tabsetPanel(
+        id = "plot_tabs",
+        tabPanel(
+          "Individual profiles",
+          fluidRow(column(4, uiOutput("date_select"))),
+          fluidRow(
+            column(
+              12,
+              h4("Profile plot:"),
+              div(
+                plotOutput("ind_prof_plot", height = "500px"),
+                style = "max-width: 600px"
+              )
+            )
+          ),
+          fluidRow(
+            column(
+              12,
+              h4("Profile data table:"),
+              div(
+                DT::dataTableOutput("profile_table"),
+                style = "font-size:80%; max-width: 800px;"
+              )
+            )
+          ),
+          br()
+        ),
+        tabPanel(
+          "Site profiles (all dates)",
+          # fluidRow(column(4, uiOutput("date_slider"))),
+          fluidRow(
+            column(4, uiOutput("start_date_select")),
+            column(4, uiOutput("end_date_select"))
+          ),
+          fluidRow(column(
+            12,
+            h4("Parameter profiles:"),
+            div(
+              plotOutput("site_prof_plot", height = "600px"),
+              style = "max-width: 800px"
+            )
+          )),
+          br()
+        ),
+      )
+    )
   ),
   tags$footer(
     "Arkansas Division of Environmental Quality - Lake Vertical Profiles Dashboard",
     style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
   )
-  
 )
-
 
 
 server <- function(input, output, session) {
@@ -142,13 +160,13 @@ server <- function(input, output, session) {
       footer = NULL
     )
   )
-  
+
   # Remove modal when app is ready
   observe({
     req(map, sites_table)
     removeModal()
   })
-  
+
   # Observer for the user guide button
   observeEvent(input$show_guide, {
     showModal(modalDialog(
@@ -158,18 +176,27 @@ server <- function(input, output, session) {
       easyClose = TRUE
     ))
   })
-  
+
   # Data work -------------------------------------------------------------------
-  
-  # Wide profile data (from lake profile plotting project):
-  profiles_wideAR <- read.csv("./data/cleaned_profiles_wide.csv")
-  
+
+  # Find the latest file ending with date pattern _YYYY-MM-DD.csv
+  latest_file <- list.files(
+    path = "./data/",
+    pattern = "_\\d{4}-\\d{2}-\\d{2}\\.csv$",
+    full.names = TRUE
+  ) %>%
+    sort(decreasing = TRUE) %>% # Sort in descending order (latest first)
+    head(1) # Take the first (most recent) file
+
+  # Load the latest file
+  profiles_wideAR <- read.csv(latest_file)
+
   # Fix AR wide data
   profiles_wideAR <- profiles_wideAR %>%
     mutate(SiteID = toupper(SiteID)) %>%
     mutate(ActivityIdentifier = paste(SiteID, Date, sep = "-")) %>%
     mutate(Date = as.Date(Date))
-  
+
   # Create AR long data
   profiles_longAR <- profiles_wideAR %>%
     tidyr::pivot_longer(
@@ -186,24 +213,24 @@ server <- function(input, output, session) {
         TRUE ~ Parameter
       )
     )
-  
+
   # Temporary fix to issues with plotting and reactive_objects$selectActID -
   # Long term solution needed to preserve tibble and make code work:
   profiles_longAR <- as.data.frame(profiles_longAR)
   profiles_longAR$ActivityIdentifier <-
     as.factor(profiles_longAR$ActivityIdentifier)
-  
+
   # Load Arkansas sites data:
   # (used in buildMapAR function):
   all_sitesAR <- read.csv("./data/all_site_info.csv")
-  
+
   filtered_sitesAR <- all_sitesAR %>%
     filter(MonitoringLocationIdentifier %in% profiles_wideAR$SiteID)
-  
+
   # List of locations with no data (for optional map layer):
   sites_nodataAR <- all_sitesAR %>%
     filter(!(MonitoringLocationIdentifier %in% profiles_wideAR$SiteID))
-  
+
   # New map/site table:
   sites_table <- filtered_sitesAR %>%
     rename(
@@ -213,9 +240,9 @@ server <- function(input, output, session) {
       Latitude = LatitudeMeasure,
       Longitude = LongitudeMeasure
     )
-  
+
   # Complete data work ----
-  
+
   # Empty reactive values object
   reactive_objects = reactiveValues(
     sel_mlid = NULL,
@@ -225,7 +252,7 @@ server <- function(input, output, session) {
     sel_profs_wide = NULL
   )
   observe({
-    req(filtered_sitesAR)  # Ensure sites data is available
+    req(filtered_sitesAR) # Ensure sites data is available
     if (is.null(reactive_objects$sel_mlid)) {
       # Set default site to the first site in the list
       default_site <-
@@ -233,14 +260,14 @@ server <- function(input, output, session) {
       reactive_objects$sel_mlid <- default_site
     }
   })
-  
+
   # Resources for returning site info on click:
   ## https://stackoverflow.com/questions/28938642/marker-mouse-click-event-in-r-leaflet-for-shiny
   ## https://stackoverflow.com/questions/42613984/how-to-implement-inputmap-marker-click-correctly?noredirect=1&lq=1
-  
+
   # Select map set up
   map = leaflet::createLeafletMap(session, 'map')
-  
+
   # Here, buildMapAR() is a function customized from buildMap() in Utah's
   # wqTools package that will build a map from prof_sites data using
   # au_poly polygons (here these are lake polygons)
@@ -249,10 +276,10 @@ server <- function(input, output, session) {
       buildMapAR_redo(sites = filtered_sitesAR, sites_nodataAR)
     })
   })
-  
+
   # Table interface:
   output$table_input <- DT::renderDataTable({
-    req(sites_table)  # Ensure data is available
+    req(sites_table) # Ensure data is available
     DT::datatable(
       sites_table,
       selection = 'single',
@@ -266,7 +293,7 @@ server <- function(input, output, session) {
       )
     )
   })
-  
+
   # Ensure that when switching to the Table tab, the selected site is set
   observeEvent(input$ui_tab, {
     if (input$ui_tab == "Table") {
@@ -278,9 +305,7 @@ server <- function(input, output, session) {
       }
     }
   })
-  
-  
-  
+
   # Map marker click (to identify selected site)
   observe({
     req(profiles_longAR)
@@ -291,12 +316,12 @@ server <- function(input, output, session) {
     siteid = site_click$id
     reactive_objects$sel_mlid = siteid
   })
-  
+
   # Observer for table row selection to update plots
   observeEvent(input$table_input_rows_selected, {
-    req(sites_table)  # Ensure data is available
+    req(sites_table) # Ensure data is available
     selected_row <- input$table_input_rows_selected
-    
+
     if (length(selected_row) > 0) {
       # Get the SiteID of the selected row
       selected_site <- sites_table[selected_row, "StationID"]
@@ -304,45 +329,41 @@ server <- function(input, output, session) {
       reactive_objects$sel_mlid <- selected_site
     }
   })
-  
+
   # Observer to zoom map to the selected site when a row is clicked in the table
   observeEvent(input$table_input_rows_selected, {
-    req(sites_table)  # Ensure data is available
+    req(sites_table) # Ensure data is available
     selected_row <- input$table_input_rows_selected
-    
+
     if (length(selected_row) > 0) {
       # Get the selected site's latitude and longitude
-      selected_site <- sites_table[selected_row,]
+      selected_site <- sites_table[selected_row, ]
       lat <- selected_site$Latitude
       lon <- selected_site$Longitude
-      
+
       # Zoom the map to the selected site
       leafletProxy("map") %>%
-        setView(lng = lon,
-                lat = lat,
-                zoom = 12)  # Adjust zoom level as needed
+        setView(lng = lon, lat = lat, zoom = 12) # Adjust zoom level as needed
     }
   })
-  
-  
+
   # Select profiles & date options based on selected site ID
   observe({
     req(reactive_objects$sel_mlid)
-    reactive_objects$sel_profiles = profiles_longAR[profiles_longAR$SiteID ==
-                                                      reactive_objects$sel_mlid, ]
+    reactive_objects$sel_profiles = profiles_longAR[
+      profiles_longAR$SiteID == reactive_objects$sel_mlid,
+    ]
     profile_dates = unique(reactive_objects$sel_profiles$Date)
     profile_dates = profile_dates[order(profile_dates)]
     reactive_objects$profile_dates = profile_dates
   })
-  
+
   # Profile date selection
   output$date_select <- renderUI({
     req(reactive_objects$profile_dates)
-    selectInput("date_select",
-                "Profile date:",
-                reactive_objects$profile_dates)
+    selectInput("date_select", "Profile date:", reactive_objects$profile_dates)
   })
-  
+
   # Date slider for combined profile plots (original usage, converted to two box drop downs):
   # output$date_slider <- renderUI({
   #   req(reactive_objects$profile_dates)
@@ -356,55 +377,64 @@ server <- function(input, output, session) {
   #     value = c(date_min, date_max)
   #   )
   # })
-  
+
   # NEW date drop downs instead of slider:
   # Render start date dropdown
   output$start_date_select <- renderUI({
     req(reactive_objects$profile_dates)
     date_choices <- reactive_objects$profile_dates
-    selectInput("start_date",
-                "Start date:",
-                choices = date_choices,
-                selected = min(date_choices))
+    selectInput(
+      "start_date",
+      "Start date:",
+      choices = date_choices,
+      selected = min(date_choices)
+    )
   })
-  
+
   # Render end date dropdown with filtered choices
   output$end_date_select <- renderUI({
     req(reactive_objects$profile_dates, input$start_date)
     date_choices <- reactive_objects$profile_dates
-    
+
     # Filter dates to only show those after start_date
     valid_end_dates <- date_choices[date_choices >= input$start_date]
-    
-    selectInput("end_date",
-                "End date:",
-                choices = valid_end_dates,
-                selected = max(valid_end_dates))
+
+    selectInput(
+      "end_date",
+      "End date:",
+      choices = valid_end_dates,
+      selected = max(valid_end_dates)
+    )
   })
-  
+
   # Generate selected aid
   observe({
     req(input$date_select)
-    reactive_objects$selectedActID = reactive_objects$sel_profiles[reactive_objects$sel_profiles$Date ==
-                                                                     input$date_select, "ActivityIdentifier"][1]
+    reactive_objects$selectedActID = reactive_objects$sel_profiles[
+      reactive_objects$sel_profiles$Date == input$date_select,
+      "ActivityIdentifier"
+    ][1]
   })
-  
+
   # Profile plot output (uses long data) ----
   output$ind_prof_plot = renderPlot({
-    req(reactive_objects$sel_profiles,
-        reactive_objects$selectedActID)
-    one_profile = reactive_objects$sel_profiles[reactive_objects$sel_profiles$ActivityIdentifier ==
-                                                  reactive_objects$selectedActID,]
-    
-    one_profile = unique(one_profile[, c(#"DataLoggerLine",
+    req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
+    one_profile = reactive_objects$sel_profiles[
+      reactive_objects$sel_profiles$ActivityIdentifier ==
+        reactive_objects$selectedActID,
+    ]
+
+    one_profile = unique(one_profile[, c(
+      #"DataLoggerLine",
       "ActivityIdentifier",
       "Date",
       "Parameter",
       "IR_Value",
       #"IR_Unit",
       "SiteID",
-      "Time")])
-    
+      "Time"
+    )])
+
     # OG profilePlot() function from wqTools package by Utah DEQ
     # Modified for AR data setup
     profilePlotAR(
@@ -419,24 +449,21 @@ server <- function(input, output, session) {
       #pH_crit = c(6.5, 9),
       #do_crit = do_crit,
       #temp_crit = temp_crit
-      
+
       # customize or remove these:
       #units = "IR_Unit",
       #line_no = "DataLoggerLine",
     )
     box()
   })
-  
+
   #Data table output (uses profiles_Wide):----
   observe({
     req(reactive_objects$selectedActID)
-    table_data = profiles_wideAR[profiles_wideAR$ActivityIdentifier ==
-                                   reactive_objects$selectedActID, c("SiteID",
-                                                                     "Date",
-                                                                     "Depth",
-                                                                     "DO_Inst",
-                                                                     "pH_Inst",
-                                                                     "Temp_Inst")]
+    table_data = profiles_wideAR[
+      profiles_wideAR$ActivityIdentifier == reactive_objects$selectedActID,
+      c("SiteID", "Date", "Depth", "DO_Inst", "pH_Inst", "Temp_Inst")
+    ]
     reactive_objects$table_data = table_data[order(table_data$Depth), ]
   })
   output$profile_table = DT::renderDataTable({
@@ -451,43 +478,49 @@ server <- function(input, output, session) {
         searching = F
       )
     ) %>%
-      DT::formatStyle("DO_Inst",
-                      backgroundColor = DT::styleEqual(1, "orange"))  %>%
-      DT::formatStyle("pH_Inst", backgroundColor = DT::styleEqual(1, "orange"))  %>%
-      DT::formatStyle("Temp_Inst",
-                      backgroundColor = DT::styleEqual(1, "orange"))
+      DT::formatStyle(
+        "DO_Inst",
+        backgroundColor = DT::styleEqual(1, "orange")
+      ) %>%
+      DT::formatStyle(
+        "pH_Inst",
+        backgroundColor = DT::styleEqual(1, "orange")
+      ) %>%
+      DT::formatStyle(
+        "Temp_Inst",
+        backgroundColor = DT::styleEqual(1, "orange")
+      )
   })
-  
+
   # Site profiles (all dates) plotting - uses profiles wide (OLD, for slider):----
   # observe({
   #   req(reactive_objects$sel_mlid, input$date_slider)
-  #   
+  #
   #   reactive_objects$sel_profs_wide = profiles_wideAR[profiles_wideAR$SiteID == reactive_objects$sel_mlid &
   #                                                       profiles_wideAR$Date >= input$date_slider[1] &
   #                                                       profiles_wideAR$Date <= input$date_slider[2]
   #                                                     ,]
   # })
-  
+
   # Site profiles (all dates) plotting - uses profiles wide (NEW):
   observe({
     req(reactive_objects$sel_mlid, input$start_date, input$end_date)
-    
-    reactive_objects$sel_profs_wide = profiles_wideAR[profiles_wideAR$SiteID == reactive_objects$sel_mlid &
-                                                        profiles_wideAR$Date >= input$start_date &
-                                                        profiles_wideAR$Date <= input$end_date
-                                                      ,]
+
+    reactive_objects$sel_profs_wide = profiles_wideAR[
+      profiles_wideAR$SiteID == reactive_objects$sel_mlid &
+        profiles_wideAR$Date >= input$start_date &
+        profiles_wideAR$Date <= input$end_date,
+    ]
   })
-  
-  
+
   output$site_prof_plot = renderPlot({
     req(reactive_objects$sel_profs_wide)
     site_data_wide <- reactive_objects$sel_profs_wide
-    
+
     # plotting function with args
     site_plottingAR(site_data_wide)
     #box()
   })
-  
 }
 
 
