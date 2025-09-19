@@ -361,7 +361,12 @@ server <- function(input, output, session) {
   # Profile date selection
   output$date_select <- renderUI({
     req(reactive_objects$profile_dates)
-    selectInput("date_select", "Profile date:", reactive_objects$profile_dates)
+    selectInput(
+      "date_select",
+      "Profile date:",
+      choices = reactive_objects$profile_dates,
+      selected = max(reactive_objects$profile_dates)
+    )
   })
 
   # Date slider for combined profile plots (original usage, converted to two box drop downs):
