@@ -61,7 +61,7 @@ ui <- page_fluid(
         ),
         p(
           "Disclaimer: Data are provisional and subject to change",
-          style = "margin-left: 60px; margin-top: -5px; font-size: 90%; color: #666;"
+          style = "margin-left: 60px; margin-top: -5px; font-size: 90%; color: #D9534F;"
         )
       )
     ),
@@ -194,6 +194,9 @@ ui <- page_fluid(
         )
       )
     ),
+
+    uiOutput("data_notice"),
+
     tags$footer(
       "Arkansas Division of Environmental Quality - Lake Vertical Profiles Dashboard",
       style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
@@ -528,6 +531,7 @@ server <- function(input, output, session) {
     if (input$plot_tabs == "Individual profiles") {
       req(reactive_objects$table_data)
       dat <- reactive_objects$table_data
+      filename <- paste0(reactive_objects$sel_mlid, "_", input$date_select)
     } else if (input$plot_tabs == "Site profiles (all dates)") {
       req(reactive_objects$sel_profs_wide)
       dat <- reactive_objects$sel_profs_wide[, c(
@@ -538,17 +542,30 @@ server <- function(input, output, session) {
         "pH_Inst",
         "Temp_Inst"
       )]
+      filename <- paste0(reactive_objects$sel_mlid, "_all_dates")
     } else {
       return(NULL)
     }
     DT::datatable(
       dat,
       selection = 'multiple',
+      extensions = 'Buttons',
       options = list(
         scrollY = '500px',
         paging = FALSE,
         scrollX = TRUE,
-        searching = FALSE
+        searching = FALSE,
+        dom = "tB",
+        buttons = list(
+          list(
+            extend = "csv",
+            text = "Download CSV",
+            filename = filename,
+            exportOptions = list(
+              modifier = list(page = "all")
+            )
+          )
+        )
       )
     ) %>%
       DT::formatStyle(
@@ -593,6 +610,20 @@ server <- function(input, output, session) {
     # plotting function with args
     site_plottingAR(site_data_wide)
     #box()
+  })
+
+  ## Data notice at bottom of app ----------------------------------------------------
+  output$data_notice <- renderUI({
+    req(profiles_wideAR)
+    latest_date <- max(profiles_wideAR$Date, na.rm = TRUE)
+    p(
+      paste0(
+        "Data available through ",
+        latest_date,
+        ". Data are typically uploaded on a quarterly basis."
+      ),
+      style = "text-align: center; font-size: 80%; color: #666666; margin-bottom: 2px;"
+    )
   })
 }
 
