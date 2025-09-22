@@ -3,6 +3,28 @@
 # Data come from "lake_profiles_graphing" project at
 # E:\LAKES\Quarterly Lakes Study\2023 - 2026 Lakes Study\Lake Profiles
 
+# Function to install and load packages
+install_and_load <- function(pkgs) {
+  new_pkgs <- pkgs[!(pkgs %in% installed.packages()[, "Package"])]
+  if (length(new_pkgs)) {
+    install.packages(new_pkgs, dependencies = TRUE)
+  }
+  lapply(pkgs, require, character.only = TRUE)
+}
+
+# List of packages needed (instead of using library()):
+install_and_load(c(
+  "magrittr",
+  "dplyr",
+  "ggplot2",
+  "leaflet",
+  "shiny",
+  "markdown",
+  "gridExtra",
+  "bslib"
+))
+
+
 library(magrittr)
 library(dplyr)
 library(leaflet)
