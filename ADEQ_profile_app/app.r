@@ -19,7 +19,7 @@ source("plot_fun.R")
 # Custom plot function for AR from lake_profiles_graphing project:
 source("ADEQ_plot_fun.R")
 
-
+## UI -----------------------------------------------------------------------------
 ui <- page_fluid(
   theme = bs_theme(
     version = 5, # Bootstrap 5
@@ -218,7 +218,7 @@ ui <- page_fluid(
     )
   )
 )
-
+# end UI, Server below -----------------------------------------------------------------
 
 server <- function(input, output, session) {
   # Loading modal to keep user out of trouble while map draws...
@@ -265,21 +265,26 @@ server <- function(input, output, session) {
   profiles_wideAR <- profiles_wideAR %>%
     mutate(SiteID = toupper(SiteID)) %>%
     mutate(ActivityIdentifier = paste(SiteID, Date, sep = "-")) %>%
-    mutate(Date = as.Date(Date))
+    mutate(Date = as.Date(Date)) %>%
+    rename(
+      `DO (mg/L)` = DO_Inst,
+      `pH` = pH_Inst,
+      `Temp (°C)` = Temp_Inst
+    )
 
   # Create AR long data
   profiles_longAR <- profiles_wideAR %>%
     tidyr::pivot_longer(
-      cols = c("Temp_Inst", "DO_Inst", "pH_Inst", "Depth"),
+      cols = c("Temp (°C)", "DO (mg/L)", "pH", "Depth"),
       names_to = "Parameter",
       values_to = "IR_Value"
     ) %>%
     mutate(
       Parameter = case_when(
         Parameter == "Depth" ~ "Depth (m)",
-        Parameter == "DO_Inst" ~ "DO (mg/L)",
-        Parameter == "pH_Inst" ~ "pH",
-        Parameter == "Temp_Inst" ~ "Temp (*C)",
+        #Parameter == "DO_Inst" ~ "DO (mg/L)",
+        #Parameter == "pH_Inst" ~ "pH",
+        # Parameter == "Temp_Inst" ~ "Temp (°C)",
         TRUE ~ Parameter
       )
     )
@@ -517,7 +522,7 @@ server <- function(input, output, session) {
       parameter = "Parameter",
       depth = "Depth (m)",
       do = "DO (mg/L)",
-      temp = "Temp (*C)",
+      temp = "Temp (°C)",
       pH = "pH",
       value_var = "IR_Value",
       line_no = "Time"
@@ -549,7 +554,7 @@ server <- function(input, output, session) {
         parameter = "Parameter",
         depth = "Depth (m)",
         do = "DO (mg/L)",
-        temp = "Temp (*C)",
+        temp = "Temp (°C)",
         pH = "pH",
         value_var = "IR_Value",
         line_no = "Time"
@@ -563,7 +568,7 @@ server <- function(input, output, session) {
     req(reactive_objects$selectedActID)
     table_data = profiles_wideAR[
       profiles_wideAR$ActivityIdentifier == reactive_objects$selectedActID,
-      c("SiteID", "Date", "Depth", "DO_Inst", "pH_Inst", "Temp_Inst")
+      c("SiteID", "Date", "Depth", "DO (mg/L)", "pH", "Temp (°C)")
     ]
     reactive_objects$table_data = table_data[order(table_data$Depth), ]
   })
@@ -571,12 +576,7 @@ server <- function(input, output, session) {
   output$profile_table = DT::renderDataTable({
     if (input$plot_tabs == "Individual profiles") {
       req(reactive_objects$table_data)
-      dat <- reactive_objects$table_data %>%
-        dplyr::rename(
-          `DO (mg/L)` = DO_Inst,
-          `pH` = pH_Inst,
-          `Temp (°C)` = Temp_Inst
-        )
+      dat <- reactive_objects$table_data
       filename <- paste0(reactive_objects$sel_mlid, "_", input$date_select)
     } else if (input$plot_tabs == "Site profiles (all dates)") {
       req(reactive_objects$sel_profs_wide)
@@ -584,15 +584,10 @@ server <- function(input, output, session) {
         "SiteID",
         "Date",
         "Depth",
-        "DO_Inst",
-        "pH_Inst",
-        "Temp_Inst"
-      )] %>%
-        dplyr::rename(
-          `DO (mg/L)` = DO_Inst,
-          `pH` = pH_Inst,
-          `Temp (°C)` = Temp_Inst
-        )
+        "DO (mg/L)",
+        "pH",
+        "Temp (°C)"
+      )]
       filename <- paste0(reactive_objects$sel_mlid, "_all_dates")
     } else {
       return(NULL)
@@ -632,26 +627,16 @@ server <- function(input, output, session) {
     },
     content = function(file) {
       if (input$plot_tabs == "Individual profiles") {
-        dat <- reactive_objects$table_data %>%
-          dplyr::rename(
-            `DO (mg/L)` = DO_Inst,
-            `pH` = pH_Inst,
-            `Temp (°C)` = Temp_Inst
-          )
+        dat <- reactive_objects$table_data
       } else {
         dat <- reactive_objects$sel_profs_wide[, c(
           "SiteID",
           "Date",
           "Depth",
-          "DO_Inst",
-          "pH_Inst",
-          "Temp_Inst"
-        )] %>%
-          dplyr::rename(
-            `DO (mg/L)` = DO_Inst,
-            `pH` = pH_Inst,
-            `Temp (°C)` = Temp_Inst
-          )
+          "DO (mg/L)",
+          "pH",
+          "Temp (°C)"
+        )]
       }
       write.csv(dat, file, row.names = FALSE)
     }
