@@ -129,6 +129,11 @@ ui <- page_fluid(
             div(
               DT::dataTableOutput("profile_table"),
               style = "font-size:80%;"
+            ),
+            downloadButton(
+              "download_profile_csv",
+              "Download CSV",
+              style = "margin-top: 5px;  background-color: #0080b7; color: white;"
             )
           )
         ),
@@ -157,6 +162,11 @@ ui <- page_fluid(
                 div(
                   plotOutput("ind_prof_plot", height = "500px"),
                   style = "max-width: 600px; margin-top: -8px;"
+                ),
+                downloadButton(
+                  "download_profile_plot",
+                  "Download Plot",
+                  style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
                 )
               )
             ),
@@ -187,6 +197,11 @@ ui <- page_fluid(
               div(
                 plotOutput("site_prof_plot", height = "600px"),
                 style = "max-width: 800px"
+              ),
+              downloadButton(
+                "download_site_plot",
+                "Download Plots",
+                style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
               )
             )),
             br()
@@ -517,7 +532,33 @@ server <- function(input, output, session) {
     box()
   })
 
-  #Data table output (uses profiles_Wide):----
+  # Download plot button for single plot ---------------------------------------
+  output$download_profile_plot <- downloadHandler(
+    filename = function() {
+      paste0(reactive_objects$sel_mlid, "_", input$date_select, ".png")
+    },
+    content = function(file) {
+      req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
+      one_profile <- reactive_objects$sel_profiles[
+        reactive_objects$sel_profiles$ActivityIdentifier ==
+          reactive_objects$selectedActID,
+      ]
+      png(file, width = 700, height = 500)
+      profilePlotAR(
+        data = one_profile,
+        parameter = "Parameter",
+        depth = "Depth (m)",
+        do = "DO (mg/L)",
+        temp = "Temp (*C)",
+        pH = "pH",
+        value_var = "IR_Value",
+        line_no = "Time"
+      )
+      dev.off()
+    }
+  )
+
+  #Data table output (uses profiles_Wide):----------------------------------------
   observe({
     req(reactive_objects$selectedActID)
     table_data = profiles_wideAR[
@@ -530,7 +571,12 @@ server <- function(input, output, session) {
   output$profile_table = DT::renderDataTable({
     if (input$plot_tabs == "Individual profiles") {
       req(reactive_objects$table_data)
-      dat <- reactive_objects$table_data
+      dat <- reactive_objects$table_data %>%
+        dplyr::rename(
+          `DO (mg/L)` = DO_Inst,
+          `pH` = pH_Inst,
+          `Temp (°C)` = Temp_Inst
+        )
       filename <- paste0(reactive_objects$sel_mlid, "_", input$date_select)
     } else if (input$plot_tabs == "Site profiles (all dates)") {
       req(reactive_objects$sel_profs_wide)
@@ -541,7 +587,12 @@ server <- function(input, output, session) {
         "DO_Inst",
         "pH_Inst",
         "Temp_Inst"
-      )]
+      )] %>%
+        dplyr::rename(
+          `DO (mg/L)` = DO_Inst,
+          `pH` = pH_Inst,
+          `Temp (°C)` = Temp_Inst
+        )
       filename <- paste0(reactive_objects$sel_mlid, "_all_dates")
     } else {
       return(NULL)
@@ -549,38 +600,62 @@ server <- function(input, output, session) {
     DT::datatable(
       dat,
       selection = 'multiple',
-      extensions = 'Buttons',
       options = list(
         scrollY = '500px',
         paging = FALSE,
         scrollX = TRUE,
-        searching = FALSE,
-        dom = "tB",
-        buttons = list(
-          list(
-            extend = "csv",
-            text = "Download CSV",
-            filename = filename,
-            exportOptions = list(
-              modifier = list(page = "all")
-            )
-          )
-        )
+        searching = FALSE
       )
     ) %>%
       DT::formatStyle(
-        "DO_Inst",
+        "DO (mg/L)",
         backgroundColor = DT::styleEqual(1, "orange")
       ) %>%
       DT::formatStyle(
-        "pH_Inst",
+        "pH",
         backgroundColor = DT::styleEqual(1, "orange")
       ) %>%
       DT::formatStyle(
-        "Temp_Inst",
+        "Temp (°C)",
         backgroundColor = DT::styleEqual(1, "orange")
       )
   })
+
+  # Download CSV button for profile data table (uses profiles wide): ---------------
+  output$download_profile_csv <- downloadHandler(
+    filename = function() {
+      if (input$plot_tabs == "Individual profiles") {
+        paste0(reactive_objects$sel_mlid, "_", input$date_select, ".csv")
+      } else {
+        paste0(reactive_objects$sel_mlid, "_all_dates.csv")
+      }
+    },
+    content = function(file) {
+      if (input$plot_tabs == "Individual profiles") {
+        dat <- reactive_objects$table_data %>%
+          dplyr::rename(
+            `DO (mg/L)` = DO_Inst,
+            `pH` = pH_Inst,
+            `Temp (°C)` = Temp_Inst
+          )
+      } else {
+        dat <- reactive_objects$sel_profs_wide[, c(
+          "SiteID",
+          "Date",
+          "Depth",
+          "DO_Inst",
+          "pH_Inst",
+          "Temp_Inst"
+        )] %>%
+          dplyr::rename(
+            `DO (mg/L)` = DO_Inst,
+            `pH` = pH_Inst,
+            `Temp (°C)` = Temp_Inst
+          )
+      }
+      write.csv(dat, file, row.names = FALSE)
+    }
+  )
 
   # Site profiles (all dates) plotting - uses profiles wide (OLD, for slider):----
   # observe({
@@ -592,7 +667,7 @@ server <- function(input, output, session) {
   #                                                     ,]
   # })
 
-  # Site profiles (all dates) plotting - uses profiles wide (NEW):
+  # Site profiles (all dates) plotting - uses profiles wide (NEW): ---------------------
   observe({
     req(reactive_objects$sel_mlid, input$start_date, input$end_date)
 
@@ -611,6 +686,20 @@ server <- function(input, output, session) {
     site_plottingAR(site_data_wide)
     #box()
   })
+
+  # Download plots button for all dates plots -------------------------------------
+  output$download_site_plot <- downloadHandler(
+    filename = function() {
+      paste0(reactive_objects$sel_mlid, "_all_dates_plot.png")
+    },
+    content = function(file) {
+      req(reactive_objects$sel_profs_wide)
+      site_data_wide <- reactive_objects$sel_profs_wide
+      png(file, width = 1000, height = 800) # Adjust size as needed
+      site_plottingAR(site_data_wide)
+      dev.off()
+    }
+  )
 
   ## Data notice at bottom of app ----------------------------------------------------
   output$data_notice <- renderUI({
