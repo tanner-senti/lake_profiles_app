@@ -22,7 +22,8 @@ required_packages <- (c(
   "shiny",
   "markdown",
   "gridExtra",
-  "bslib"
+  "bslib",
+  "ggiraph"
 ))
 
 # Check and install
@@ -60,6 +61,7 @@ if (Sys.getenv("SHINY_PORT") == "") {
   library(ggplot2)
   library(gridExtra)
   library(bslib)
+  library(ggiraph)
 }
 
 #library(wqTools)
@@ -70,6 +72,9 @@ source("map_fun_redo.R")
 source("plot_fun.R")
 # Custom plot function for AR from lake_profiles_graphing project:
 source("ADEQ_plot_fun.R")
+
+# Testing interactive plot function:
+source("plot_fun_test.R")
 
 ## UI -----------------------------------------------------------------------------
 ui <- page_fluid(
@@ -112,7 +117,7 @@ ui <- page_fluid(
           style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"
         ),
         p(
-          "Disclaimer: Data are provisional and subject to change",
+          "Disclaimer: Data are provisional and not for official use",
           style = "margin-left: 60px; margin-top: -5px; font-size: 90%; color: #D9534F;"
         )
       )
@@ -220,7 +225,17 @@ ui <- page_fluid(
                   "Download Plot",
                   style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
                 )
+              ),
+              # TESTING, DELETE THIS EXTRA STUFF-----------------
+              column(
+                12,
+                h4("Profile plot:", style = "color: #666666;"),
+                div(
+                  girafeOutput("ind_prof_plot_test", height = "500px"),
+                  style = "max-width: 600px; margin-top: -8px;"
+                )
               )
+              #--------------------------------------------------
             ),
             br()
           ),
@@ -614,6 +629,42 @@ server <- function(input, output, session) {
       dev.off()
     }
   )
+
+  # TESTING PLOT, DELETE THIS ----------------------------
+  # Profile plot output (uses long data) ----
+  output$ind_prof_plot_test <- renderGirafe({
+    req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
+
+    one_profile <- reactive_objects$sel_profiles[
+      reactive_objects$sel_profiles$ActivityIdentifier ==
+        reactive_objects$selectedActID,
+    ]
+
+    one_profile <- unique(one_profile[, c(
+      "ActivityIdentifier",
+      "Date",
+      "Parameter",
+      "IR_Value",
+      "SiteID",
+      "Time"
+    )])
+
+    profilePlotAR_test(
+      data = one_profile,
+      parameter = "Parameter",
+      depth = "Depth (m)",
+      do = "DO (mg/L)",
+      temp = "Temp (°C)",
+      pH = "pH",
+      value_var = "IR_Value",
+      line_no = "Time"
+      # pH_crit = c(6.5, 9),
+      # do_crit = do_crit,
+      # temp_crit = temp_crit
+    )
+  })
+
+  #-----------------------------------------------------------
 
   #Data table output (uses profiles_Wide):----------------------------------------
   observe({
