@@ -3,17 +3,18 @@
 # Data come from "lake_profiles_graphing" project at
 # E:\LAKES\Quarterly Lakes Study\2023 - 2026 Lakes Study\Lake Profiles
 
-# Function to install and load packages
-install_and_load <- function(pkgs) {
-  new_pkgs <- pkgs[!(pkgs %in% installed.packages()[, "Package"])]
-  if (length(new_pkgs)) {
-    install.packages(new_pkgs, dependencies = TRUE)
+# Function to check and install packages
+check_and_install <- function(packages) {
+  for (pkg in packages) {
+    if (!require(pkg, character.only = TRUE)) {
+      install.packages(pkg, dependencies = TRUE)
+      library(pkg, character.only = TRUE)
+    }
   }
-  lapply(pkgs, require, character.only = TRUE)
 }
 
 # List of packages needed (instead of using library()):
-install_and_load(c(
+required_packages <- (c(
   "magrittr",
   "dplyr",
   "ggplot2",
@@ -24,15 +25,44 @@ install_and_load(c(
   "bslib"
 ))
 
+# Check and install
+check_and_install(required_packages)
 
-library(magrittr)
-library(dplyr)
-library(leaflet)
-library(markdown)
+# Only install if running locally
+if (Sys.getenv("SHINY_PORT") == "") {
+  # Not on shinyapps.io
+  check_and_install <- function(packages) {
+    for (pkg in packages) {
+      if (!require(pkg, character.only = TRUE)) {
+        install.packages(pkg, dependencies = TRUE)
+        library(pkg, character.only = TRUE)
+      }
+    }
+  }
+
+  required_packages <- c(
+    "magrittr",
+    "dplyr",
+    "ggplot2",
+    "leaflet",
+    "shiny",
+    "markdown",
+    "gridExtra",
+    "bslib"
+  )
+  check_and_install(required_packages)
+} else {
+  # On shinyapps.io, just load packages
+  library(magrittr)
+  library(dplyr)
+  library(leaflet)
+  library(markdown)
+  library(ggplot2)
+  library(gridExtra)
+  library(bslib)
+}
+
 #library(wqTools)
-library(ggplot2)
-library(gridExtra)
-library(bslib)
 
 # Custom map function for AR instead of Utah's map function in wqTools:
 source("map_fun_redo.R")
