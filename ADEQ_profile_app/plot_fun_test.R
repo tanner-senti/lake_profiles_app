@@ -102,17 +102,15 @@ profilePlotAR_test <- function(
       )
     ) +
     labs(title = site_id) +
-    theme_bw(base_size = 14) +
+    theme_bw(base_size = 16) +
     theme(
       legend.position = "bottom",
       panel.grid = element_blank(),
-      plot.title = element_text(hjust = 0.5)
+      plot.title = element_text(hjust = 0.5),
+      legend.title = element_blank(),
+      axis.title.x = element_blank(),
+      legend.box = "vertical",
+      legend.direction = "vertical"
     )
-  girafe(
-    ggobj = p,
-    options = list(
-      opts_toolbar(saveaspng = FALSE),
-      opts_hover(css = "fill:red;stroke:black;")
-    )
-  )
+  return(p)
 }

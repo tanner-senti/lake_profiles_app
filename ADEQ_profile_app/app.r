@@ -217,7 +217,7 @@ ui <- page_fluid(
                 12,
                 h4("Profile plot:", style = "color: #666666;"),
                 div(
-                  plotOutput("ind_prof_plot", height = "500px"),
+                  girafeOutput("ind_prof_plot_test", height = "500px"),
                   style = "max-width: 600px; margin-top: -8px;"
                 ),
                 downloadButton(
@@ -225,17 +225,7 @@ ui <- page_fluid(
                   "Download Plot",
                   style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
                 )
-              ),
-              # TESTING, DELETE THIS EXTRA STUFF-----------------
-              column(
-                12,
-                h4("Profile plot:", style = "color: #666666;"),
-                div(
-                  girafeOutput("ind_prof_plot_test", height = "500px"),
-                  style = "max-width: 600px; margin-top: -8px;"
-                )
               )
-              #--------------------------------------------------
             ),
             br()
           ),
@@ -563,47 +553,6 @@ server <- function(input, output, session) {
     ][1]
   })
 
-  # Profile plot output (uses long data) ----
-  output$ind_prof_plot = renderPlot({
-    req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
-    one_profile = reactive_objects$sel_profiles[
-      reactive_objects$sel_profiles$ActivityIdentifier ==
-        reactive_objects$selectedActID,
-    ]
-
-    one_profile = unique(one_profile[, c(
-      #"DataLoggerLine",
-      "ActivityIdentifier",
-      "Date",
-      "Parameter",
-      "IR_Value",
-      #"IR_Unit",
-      "SiteID",
-      "Time"
-    )])
-
-    # OG profilePlot() function from wqTools package by Utah DEQ
-    # Modified for AR data setup
-    profilePlotAR(
-      data = one_profile,
-      parameter = "Parameter",
-      depth = "Depth (m)",
-      do = "DO (mg/L)",
-      temp = "Temp (°C)",
-      pH = "pH",
-      value_var = "IR_Value",
-      line_no = "Time"
-      #pH_crit = c(6.5, 9),
-      #do_crit = do_crit,
-      #temp_crit = temp_crit
-
-      # customize or remove these:
-      #units = "IR_Unit",
-      #line_no = "DataLoggerLine",
-    )
-    box()
-  })
-
   # Download plot button for single plot ---------------------------------------
   output$download_profile_plot <- downloadHandler(
     filename = function() {
@@ -615,8 +564,19 @@ server <- function(input, output, session) {
         reactive_objects$sel_profiles$ActivityIdentifier ==
           reactive_objects$selectedActID,
       ]
-      png(file, width = 700, height = 500)
-      profilePlotAR(
+      # png(file, width = 700, height = 500)
+      # profilePlotAR(
+      #   data = one_profile,
+      #   parameter = "Parameter",
+      #   depth = "Depth (m)",
+      #   do = "DO (mg/L)",
+      #   temp = "Temp (°C)",
+      #   pH = "pH",
+      #   value_var = "IR_Value",
+      #   line_no = "Time"
+      # )
+      # dev.off()
+      p <- profilePlotAR_test(
         data = one_profile,
         parameter = "Parameter",
         depth = "Depth (m)",
@@ -626,11 +586,11 @@ server <- function(input, output, session) {
         value_var = "IR_Value",
         line_no = "Time"
       )
-      dev.off()
+
+      ggplot2::ggsave(file, plot = p, width = 7, height = 5, dpi = 300)
     }
   )
 
-  # TESTING PLOT, DELETE THIS ----------------------------
   # Profile plot output (uses long data) ----
   output$ind_prof_plot_test <- renderGirafe({
     req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
@@ -649,18 +609,24 @@ server <- function(input, output, session) {
       "Time"
     )])
 
-    profilePlotAR_test(
-      data = one_profile,
-      parameter = "Parameter",
-      depth = "Depth (m)",
-      do = "DO (mg/L)",
-      temp = "Temp (°C)",
-      pH = "pH",
-      value_var = "IR_Value",
-      line_no = "Time"
-      # pH_crit = c(6.5, 9),
-      # do_crit = do_crit,
-      # temp_crit = temp_crit
+    girafe(
+      ggobj = profilePlotAR_test(
+        data = one_profile,
+        parameter = "Parameter",
+        depth = "Depth (m)",
+        do = "DO (mg/L)",
+        temp = "Temp (°C)",
+        pH = "pH",
+        value_var = "IR_Value",
+        line_no = "Time"
+        # pH_crit = c(6.5, 9),
+        # do_crit = do_crit,
+        # temp_crit = temp_crit
+      ),
+      options = list(
+        opts_toolbar(saveaspng = FALSE),
+        opts_hover(css = "fill:red;stroke:black;")
+      )
     )
   })
 
@@ -697,26 +663,27 @@ server <- function(input, output, session) {
     }
     DT::datatable(
       dat,
-      selection = 'multiple',
+      selection = 'none',
+      rownames = FALSE,
       options = list(
         scrollY = '500px',
         paging = FALSE,
         scrollX = TRUE,
         searching = FALSE
       )
-    ) %>%
-      DT::formatStyle(
-        "DO (mg/L)",
-        backgroundColor = DT::styleEqual(1, "orange")
-      ) %>%
-      DT::formatStyle(
-        "pH",
-        backgroundColor = DT::styleEqual(1, "orange")
-      ) %>%
-      DT::formatStyle(
-        "Temp (°C)",
-        backgroundColor = DT::styleEqual(1, "orange")
-      )
+    ) #%>%
+    #   DT::formatStyle(
+    #     "DO (mg/L)",
+    #     backgroundColor = DT::styleEqual(1, "orange")
+    #   ) %>%
+    #   DT::formatStyle(
+    #     "pH",
+    #     backgroundColor = DT::styleEqual(1, "orange")
+    #   ) %>%
+    #   DT::formatStyle(
+    #     "Temp (°C)",
+    #     backgroundColor = DT::styleEqual(1, "orange")
+    #   )
   })
 
   # Download CSV button for profile data table (uses profiles wide): ---------------
