@@ -69,12 +69,9 @@ if (Sys.getenv("SHINY_PORT") == "") {
 # Custom map function for AR instead of Utah's map function in wqTools:
 source("map_fun_redo.R")
 # Custom plot function for AR instead of Utah's profilePlot() function in wqTools:
-source("plot_fun.R")
+source("plot_fun_test.R")
 # Custom plot function for AR from lake_profiles_graphing project:
 source("ADEQ_plot_fun.R")
-
-# Testing interactive plot function:
-source("plot_fun_test.R")
 
 ## UI -----------------------------------------------------------------------------
 ui <- page_fluid(
@@ -261,6 +258,34 @@ ui <- page_fluid(
                 style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
               )
             )),
+            br()
+          ),
+          tabPanel(
+            "Site profiles by year",
+            fluidRow(
+              column(
+                4,
+                div(
+                  uiOutput("year_select"),
+                  style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+                )
+              )
+            ),
+            fluidRow(
+              column(
+                12,
+                h4("Parameter profiles (by year):", style = "color: #666666;"),
+                div(
+                  plotOutput("site_prof_plot_year", height = "600px"),
+                  style = "max-width: 800px"
+                ),
+                downloadButton(
+                  "download_site_plot_year",
+                  "Download Yearly Plots",
+                  style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+                )
+              )
+            ),
             br()
           ),
         )
@@ -544,6 +569,21 @@ server <- function(input, output, session) {
     )
   })
 
+  # Year selection input for site profiles by year
+  output$year_select <- renderUI({
+    req(reactive_objects$sel_profiles)
+    year_choices <- sort(unique(format(
+      reactive_objects$sel_profiles$Date,
+      "%Y"
+    )))
+    selectInput(
+      "sel_year",
+      "Year:",
+      choices = year_choices,
+      selected = max(year_choices)
+    )
+  })
+
   # Generate selected aid
   observe({
     req(input$date_select)
@@ -553,43 +593,14 @@ server <- function(input, output, session) {
     ][1]
   })
 
-  # Download plot button for single plot ---------------------------------------
-  output$download_profile_plot <- downloadHandler(
-    filename = function() {
-      paste0(reactive_objects$sel_mlid, "_", input$date_select, ".png")
-    },
-    content = function(file) {
-      req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
-      one_profile <- reactive_objects$sel_profiles[
-        reactive_objects$sel_profiles$ActivityIdentifier ==
-          reactive_objects$selectedActID,
-      ]
-      # png(file, width = 700, height = 500)
-      # profilePlotAR(
-      #   data = one_profile,
-      #   parameter = "Parameter",
-      #   depth = "Depth (m)",
-      #   do = "DO (mg/L)",
-      #   temp = "Temp (°C)",
-      #   pH = "pH",
-      #   value_var = "IR_Value",
-      #   line_no = "Time"
-      # )
-      # dev.off()
-      p <- profilePlotAR_test(
-        data = one_profile,
-        parameter = "Parameter",
-        depth = "Depth (m)",
-        do = "DO (mg/L)",
-        temp = "Temp (°C)",
-        pH = "pH",
-        value_var = "IR_Value",
-        line_no = "Time"
-      )
-
-      ggplot2::ggsave(file, plot = p, width = 7, height = 5, dpi = 300)
-    }
-  )
+  # Observer for year selection
+  observe({
+    req(reactive_objects$sel_mlid, input$sel_year)
+    reactive_objects$sel_profs_year <- profiles_wideAR[
+      profiles_wideAR$SiteID == reactive_objects$sel_mlid &
+        format(profiles_wideAR$Date, "%Y") == input$sel_year,
+    ]
+  })
 
   # Profile plot output (uses long data) ----
   output$ind_prof_plot_test <- renderGirafe({
@@ -631,6 +642,44 @@ server <- function(input, output, session) {
   })
 
   #-----------------------------------------------------------
+
+  # Download plot button for single plot ---------------------------------------
+  output$download_profile_plot <- downloadHandler(
+    filename = function() {
+      paste0(reactive_objects$sel_mlid, "_", input$date_select, ".png")
+    },
+    content = function(file) {
+      req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
+      one_profile <- reactive_objects$sel_profiles[
+        reactive_objects$sel_profiles$ActivityIdentifier ==
+          reactive_objects$selectedActID,
+      ]
+      # png(file, width = 700, height = 500)
+      # profilePlotAR(
+      #   data = one_profile,
+      #   parameter = "Parameter",
+      #   depth = "Depth (m)",
+      #   do = "DO (mg/L)",
+      #   temp = "Temp (°C)",
+      #   pH = "pH",
+      #   value_var = "IR_Value",
+      #   line_no = "Time"
+      # )
+      # dev.off()
+      p <- profilePlotAR_test(
+        data = one_profile,
+        parameter = "Parameter",
+        depth = "Depth (m)",
+        do = "DO (mg/L)",
+        temp = "Temp (°C)",
+        pH = "pH",
+        value_var = "IR_Value",
+        line_no = "Time"
+      )
+
+      ggplot2::ggsave(file, plot = p, width = 7, height = 5, dpi = 300)
+    }
+  )
 
   #Data table output (uses profiles_Wide):----------------------------------------
   observe({
@@ -751,6 +800,27 @@ server <- function(input, output, session) {
       req(reactive_objects$sel_profs_wide)
       site_data_wide <- reactive_objects$sel_profs_wide
       png(file, width = 1000, height = 800) # Adjust size as needed
+      site_plottingAR(site_data_wide)
+      dev.off()
+    }
+  )
+
+  # Profiles by year plots ------------------------------------------------------
+  output$site_prof_plot_year <- renderPlot({
+    req(reactive_objects$sel_profs_year)
+    site_data_wide <- reactive_objects$sel_profs_year
+    site_plottingAR_year(site_data_wide)
+  })
+
+  # Download plots button for profiles by year
+  output$download_site_plot_year <- downloadHandler(
+    filename = function() {
+      paste0(reactive_objects$sel_mlid, "_", input$sel_year, "_plot.png")
+    },
+    content = function(file) {
+      req(reactive_objects$sel_profs_year)
+      site_data_wide <- reactive_objects$sel_profs_year
+      png(file, width = 1000, height = 800)
       site_plottingAR(site_data_wide)
       dev.off()
     }
