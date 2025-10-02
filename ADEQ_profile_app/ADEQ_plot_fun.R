@@ -309,6 +309,180 @@ site_plottingAR_year_interactive <- function(site_data) {
   )
 }
 
+#####################################################################################
+# non-interactive versions of the sites profiles (all dates) and site profiles by year plot grids
+# for the download button handlers:
+site_plottingAR <- function(site_data) {
+  site_data <- site_data %>%
+    mutate(
+      across(Date:SiteID, as.character),
+      across(`Temp (°C)`:Depth, as.numeric)
+    )
+
+  site_id <- unique(site_data$SiteID)
+  lk_name <- unique(site_data$Lake_Name)
+
+  my_theme <- theme_classic(10) +
+    theme(
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.key.size = unit(0.3, "cm"),
+      legend.spacing.y = unit(0.2, "cm"),
+      legend.margin = margin(0, 0, 0, 0),
+      legend.box.spacing = unit(0.2, "cm"),
+      legend.position = "none"
+    )
+
+  do_p <- ggplot(site_data, aes(x = `DO (mg/L)`, y = Depth, color = Date)) +
+    geom_line(aes(group = Date), orientation = "y") +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    labs(x = "Dissolved oxygen (mg/L)", y = "Depth (m)") +
+    my_theme
+
+  ph_p <- ggplot(site_data, aes(x = pH, y = Depth, color = Date)) +
+    geom_line(aes(group = Date), orientation = "y") +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    labs(x = "pH", y = "Depth (m)") +
+    my_theme
+
+  temp_p <- ggplot(site_data, aes(x = `Temp (°C)`, y = Depth, color = Date)) +
+    geom_line(aes(group = Date), orientation = "y") +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    labs(x = "Temperature (°C)", y = "Depth (m)") +
+    my_theme
+
+  temp_p_with_legend <- temp_p +
+    theme(legend.position = "right", legend.text = element_text(size = 8))
+  legend <- cowplot::get_legend(temp_p_with_legend)
+
+  cowplot::plot_grid(
+    cowplot::ggdraw() +
+      cowplot::draw_label(
+        paste0(site_id, " - ", lk_name),
+        size = 14,
+        hjust = 0.5
+      ) +
+      theme(plot.background = element_rect(fill = "white", color = NA)),
+    cowplot::ggdraw() +
+      cowplot::draw_plot(
+        cowplot::plot_grid(
+          do_p,
+          ph_p,
+          temp_p,
+          legend,
+          ncol = 2,
+          rel_widths = c(1, 1)
+        )
+      ) +
+      theme(plot.background = element_rect(fill = "white", color = NA)),
+    ncol = 1,
+    rel_heights = c(0.08, 1)
+  )
+}
+#-------------
+site_plottingAR_year <- function(site_data) {
+  site_data <- site_data %>%
+    mutate(
+      across(Date:SiteID, as.character),
+      across(`Temp (°C)`:Depth, as.numeric),
+      Date = as.Date(Date),
+      Date_f = factor(Date, levels = sort(unique(Date))),
+    )
+
+  site_id <- unique(site_data$SiteID)
+  lk_name <- unique(site_data$Lake_Name)
+
+  n_dates <- length(unique(site_data$Date_f))
+  date_colors <- colorRampPalette(
+    viridisLite::mako(n_dates, begin = 0.9, end = 0.1)
+  )(n_dates)
+
+  my_theme <- theme_classic(10) +
+    theme(
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.key.size = unit(0.3, "cm"), # Smaller legend keys/symbols
+      legend.spacing.y = unit(0.2, "cm"), # Tighter spacing between items
+      legend.margin = margin(0, 0, 0, 0), # Remove legend margins
+      legend.box.spacing = unit(0.2, "cm"), # Less space around legend box
+      legend.position = "none" # Remove legends from individual plots
+    )
+
+  do_p <- ggplot(site_data, aes(x = `DO (mg/L)`, y = Depth, color = Date_f)) +
+    geom_line(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    scale_color_manual(values = date_colors, name = "Date") +
+    labs(x = "Dissolved Oxygen (mg/L)", y = "Depth (m)") +
+    my_theme
+
+  ph_p <- ggplot(site_data, aes(x = pH, y = Depth, color = Date_f)) +
+    geom_line(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    scale_color_manual(values = date_colors, name = "Date") +
+    labs(x = "pH", y = "Depth (m)") +
+    my_theme
+
+  temp_p <- ggplot(site_data, aes(x = `Temp (°C)`, y = Depth, color = Date_f)) +
+    geom_line(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point(size = 1) +
+    scale_y_reverse() +
+    scale_x_continuous(position = "top") +
+    scale_color_manual(values = date_colors, name = "Date") +
+    labs(x = "Temperature (°C)", y = "Depth (m)") +
+    my_theme
+
+  # Extract legend from temp_p (before removing it)
+  temp_p_with_legend <- temp_p +
+    theme(legend.position = "right", legend.text = element_text(size = 8))
+  legend <- cowplot::get_legend(temp_p_with_legend)
+
+  # Create plot grid:
+  cowplot::plot_grid(
+    cowplot::ggdraw() +
+      cowplot::draw_label(
+        paste0(site_id, " - ", lk_name),
+        size = 14,
+        hjust = 0.5
+      ) +
+      theme(plot.background = element_rect(fill = "white", color = NA)),
+    cowplot::ggdraw() +
+      cowplot::draw_plot(
+        cowplot::plot_grid(
+          do_p,
+          ph_p,
+          temp_p,
+          legend,
+          ncol = 2,
+          rel_widths = c(1, 1)
+        )
+      ) +
+      theme(plot.background = element_rect(fill = "white", color = NA)),
+    ncol = 1,
+    rel_heights = c(0.08, 1)
+  )
+}
+
+#####################################################################################
+
 # Framework for a tab with a separate plot for each year, and the dropdown
 # selection is parameter (opposite of above)
 # site_plottingAR_paramyear <- function(site_data, sel_param) {

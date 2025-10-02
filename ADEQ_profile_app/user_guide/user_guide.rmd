@@ -7,25 +7,21 @@ editor_options:
     wrap: sentence
 ---
 
-## **Introduction** 
+### **Introduction** 
 
 This application is designed to interactively visualize lake profile data collected by Arkansas Division of Environmental Quality (ADEQ). 
 
 \
-Disclaimer: This app is a DRAFT modified from the original app created by Utah Division of Water Quality (DWQ).
-The source code that this application was developed from and additional information for the original application are available via the [Utah DWQ Lake Profile Dashboard GitHub repository](https://github.com/utah-dwq/LakeProfileDashboard). 
-\
+Disclaimer: This app and all data available here are DRAFTS.
+The source code that this application was developed from and additional information for the original application are available via the [Utah DWQ Lake Profile Dashboard GitHub repository](https://github.com/utah-dwq/LakeProfileDashboard).
 This application is available under an [MIT license](https://github.com/utah-dwq/LakeProfileDashboard/blob/master/LICENSE).
-Much of the associated text within this section is also edited from the original Utah DEQ app language.
 <br> 
 
 **Deploying the app and hosting:** 
 
 Currently this app utilizes [shinyapps.io](https://shinyapps.io/) to host and deploy on a publicly accessible URL.
-[Shiny Server](https://posit.co/products/open-source/shiny-server/) is another hosting option for those interested, and each department's IT office may have their own hosting solutions. 
-
 Due to hosting restrictions this app can only handle limited web traffic.
-If the map becomes unavailable, please contact [ADEQ's Water Quality Planning Branch](https://www.adeq.state.ar.us/water/planning/) for access to lake profile data. 
+If the app becomes unavailable, please contact [ADEQ's Water Quality Planning Branch](https://www.adeq.state.ar.us/water/planning/) for access to lake profile data. 
 <br> 
 
 **Data** 
@@ -40,7 +36,7 @@ Data have been pre-processed to ensure consistency in parameter names and units.
 
 **Application usage** 
 
-The application has two main inputs: a map and a table.
+The application has two main inputs: a map and a table of sites with data.
 To build plots for any individual site, click on your desired site in either the map or the table. 
 
 By default, only the sites with available data are shown.
@@ -68,18 +64,25 @@ To turn on any of these layers, hover the mouse over the layers control box and 
 
 ### **Outputs** 
 
+**Profile data table**
+
+On the left side of the app, underneath the map is a profile data table.
+This table will display the raw data that is used to produce the plot(s) currently visible on screen.
+The table will update dynamically depending on plot tab and date filter selections.
+Additionally, directly underneath the data table is a button to download a .CSV file of the data currently shown.
+
 **Individual profiles** 
 
-The "Individual profiles" tab shows two outputs for a single profile collected at the selected site and date.
-The first is a plot of dissolved oxygen (mg/L), temperature (°C), and pH against depth (m).
-The second output is a scrollable table of the data from that profile used to generate the plot.
+The "Individual profiles" tab displays a single profile collected at the selected site and date.
+This single lake profile plots dissolved oxygen (mg/L), temperature (°C), and pH against depth (m).
+Above the plot is a date selection drop-down with all available dates for the selected location.
 <br>
 
 **Site profiles (all dates)** 
 
-The "Site profiles" tab shows three outputs for a single site.
+The "Site profiles (all dates)" tab shows three outputs for a single site.
 Plots of dissolved oxygen (mg/L), pH, and temperature (°C) against depth (m) are displayed across all available dates.
-The date ranges used in these plots can be adjusted with the date range dropdowns at the top of the page (Figure 2). 
+The date ranges used in these plots can be adjusted with the date range drop-downs at the top of the page (Figure 2). 
  
 
 ![](date_slider.png){style="display: block; margin: 1em auto;" width="493"}
@@ -89,6 +92,18 @@ The date ranges used in these plots can be adjusted with the date range dropdown
 ```
 
 <br> 
+
+**Site profiles by year**
+
+The "Site profiles by year" tab shows three outputs for a single site.
+This tab separates each plot by parameter (dissolved oxygen (mg/L), pH, and temperature (°C)) with all the data displayed for a given calendar year.
+Above the plots is a year selection drop-down to specify which calendar year of data to display (Figure 3).
+
+![](year_profs.png){style="display: block; margin: 1em auto;" width="490"}
+
+``` html
+<center> Figure 3. Site profiles by year selection guide. </center>
+```
 
 **Help & Feedback/Credit** 
 
