@@ -661,7 +661,7 @@ server <- function(input, output, session) {
   #   ]
   # })
 
-  # Profile plot output (uses long data) ----
+  # Profile plot output (uses long data) ----------------------------------------
   output$ind_prof_plot_test <- renderGirafe({
     req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
 
@@ -701,9 +701,7 @@ server <- function(input, output, session) {
     )
   })
 
-  #-----------------------------------------------------------
-
-  # Download plot button for single plot ---------------------------------------
+  # Download plot button for single plot
   output$download_profile_plot <- downloadHandler(
     filename = function() {
       paste0(reactive_objects$sel_mlid, "_", input$date_select, ".png")
@@ -807,7 +805,7 @@ server <- function(input, output, session) {
     #   )
   })
 
-  # Download CSV button for profile data table (uses profiles wide): ---------------
+  # Download CSV button for profile data table (uses profiles wide):
   output$download_profile_csv <- downloadHandler(
     filename = function() {
       if (input$plot_tabs == "Individual profiles") {
@@ -854,7 +852,7 @@ server <- function(input, output, session) {
   #                                                     ,]
   # })
 
-  # Site profiles (all dates) plotting - uses profiles wide (NEW): ---------------------
+  # Site profiles (all dates) plotting - uses profiles wide: ------------------------
   observe({
     req(reactive_objects$sel_mlid, input$start_date, input$end_date)
 
@@ -874,7 +872,7 @@ server <- function(input, output, session) {
     #box()
   })
 
-  # Download plots button for all dates plots -------------------------------------
+  # Download plots button for all dates plots
   output$download_site_plot <- downloadHandler(
     filename = function() {
       paste0(reactive_objects$sel_mlid, "_all_dates_plot.png")
