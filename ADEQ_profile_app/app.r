@@ -68,9 +68,7 @@ if (Sys.getenv("SHINY_PORT") == "") {
 
 # Custom map function for AR instead of Utah's map function in wqTools:
 source("map_fun_redo.R")
-# Custom plot function for AR instead of Utah's profilePlot() function in wqTools:
-source("plot_fun_test.R")
-# Custom plot function for AR from lake_profiles_graphing project:
+# Custom plot functions (each tab in app has it's own function here):
 source("ADEQ_plot_fun.R")
 
 ## UI -----------------------------------------------------------------------------
@@ -288,6 +286,34 @@ ui <- page_fluid(
             ),
             br()
           ),
+          # tabPanel(
+          #   "Site profiles by parameter-year",
+          #   fluidRow(
+          #     column(
+          #       4,
+          #       div(
+          #         uiOutput("param_select"),
+          #         style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+          #       )
+          #     )
+          #   ),
+          #   fluidRow(
+          #     column(
+          #       12,
+          #       h4("Parameter profiles (by year):", style = "color: #666666;"),
+          #       div(
+          #         plotOutput("site_prof_plot_param_year", height = "600px"),
+          #         style = "max-width: 800px"
+          #       ),
+          #       downloadButton(
+          #         "download_site_plot_param_year",
+          #         "Download Yearly Plots",
+          #         style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+          #       )
+          #     )
+          #   ),
+          #   br()
+          # ),
         )
       )
     ),
@@ -329,7 +355,7 @@ server <- function(input, output, session) {
     ))
   })
 
-  # Data work -------------------------------------------------------------------
+  # Data work ---------------------------------------------------------------
 
   # Find the latest file ending with date pattern _YYYY-MM-DD.csv
   latest_file <- list.files(
@@ -398,7 +424,20 @@ server <- function(input, output, session) {
       Longitude = LongitudeMeasure
     )
 
-  # Complete data work ----
+  # Add in lake name to long and wide data files:
+  profiles_longAR <- profiles_longAR %>%
+    left_join(
+      sites_table %>% select(StationID, Lake_Name),
+      join_by("SiteID" == "StationID")
+    )
+
+  profiles_wideAR <- profiles_wideAR %>%
+    left_join(
+      sites_table %>% select(StationID, Lake_Name),
+      join_by("SiteID" == "StationID")
+    )
+
+  # Complete data work ------------------------------------------------------
 
   # Empty reactive values object
   reactive_objects = reactiveValues(
@@ -584,6 +623,18 @@ server <- function(input, output, session) {
     )
   })
 
+  # Parameter selection input for site profiles by parameter-year
+  # output$param_select <- renderUI({
+  #   req(reactive_objects$sel_profiles)
+  #   param_choices <- c("DO (mg/L)", "Temp (°C)", "pH")
+  #   selectInput(
+  #     "sel_param",
+  #     "Parameter:",
+  #     choices = param_choices,
+  #     selected = "DO (mg/L)"
+  #   )
+  # })
+
   # Generate selected aid
   observe({
     req(input$date_select)
@@ -602,6 +653,14 @@ server <- function(input, output, session) {
     ]
   })
 
+  # Observer for parameter-year selection
+  # observe({
+  #   req(reactive_objects$sel_mlid, input$sel_param)
+  #   reactive_objects$sel_profs_paramyear <- profiles_wideAR[
+  #     profiles_wideAR$SiteID == reactive_objects$sel_mlid,
+  #   ]
+  # })
+
   # Profile plot output (uses long data) ----
   output$ind_prof_plot_test <- renderGirafe({
     req(reactive_objects$sel_profiles, reactive_objects$selectedActID)
@@ -617,7 +676,8 @@ server <- function(input, output, session) {
       "Parameter",
       "IR_Value",
       "SiteID",
-      "Time"
+      "Time",
+      "Lake_Name"
     )])
 
     girafe(
@@ -686,7 +746,7 @@ server <- function(input, output, session) {
     req(reactive_objects$selectedActID)
     table_data = profiles_wideAR[
       profiles_wideAR$ActivityIdentifier == reactive_objects$selectedActID,
-      c("SiteID", "Date", "Depth", "DO (mg/L)", "pH", "Temp (°C)")
+      c("SiteID", "Lake_Name", "Date", "Depth", "DO (mg/L)", "pH", "Temp (°C)")
     ]
     reactive_objects$table_data = table_data[order(table_data$Depth), ]
   })
@@ -700,6 +760,7 @@ server <- function(input, output, session) {
       req(reactive_objects$sel_profs_wide)
       dat <- reactive_objects$sel_profs_wide[, c(
         "SiteID",
+        "Lake_Name",
         "Date",
         "Depth",
         "DO (mg/L)",
@@ -707,6 +768,17 @@ server <- function(input, output, session) {
         "Temp (°C)"
       )]
       filename <- paste0(reactive_objects$sel_mlid, "_all_dates")
+    } else if (input$plot_tabs == "Site profiles by year") {
+      req(reactive_objects$sel_profs_year)
+      dat <- reactive_objects$sel_profs_year[, c(
+        "SiteID",
+        "Lake_Name",
+        "Date",
+        "Depth",
+        "DO (mg/L)",
+        "pH",
+        "Temp (°C)"
+      )]
     } else {
       return(NULL)
     }
@@ -740,15 +812,26 @@ server <- function(input, output, session) {
     filename = function() {
       if (input$plot_tabs == "Individual profiles") {
         paste0(reactive_objects$sel_mlid, "_", input$date_select, ".csv")
-      } else {
+      } else if (input$plot_tabs == "Site profiles (all dates)") {
         paste0(reactive_objects$sel_mlid, "_all_dates.csv")
+      } else if (input$plot_tabs == "Site profiles by year") {
+        paste0(reactive_objects$sel_mlid, "_", input$sel_year, ".csv")
       }
     },
     content = function(file) {
       if (input$plot_tabs == "Individual profiles") {
         dat <- reactive_objects$table_data
-      } else {
+      } else if (input$plot_tabs == "Site profiles (all dates)") {
         dat <- reactive_objects$sel_profs_wide[, c(
+          "SiteID",
+          "Date",
+          "Depth",
+          "DO (mg/L)",
+          "pH",
+          "Temp (°C)"
+        )]
+      } else if (input$plot_tabs == "Site profiles by year") {
+        dat <- reactive_objects$sel_profs_year[, c(
           "SiteID",
           "Date",
           "Depth",
@@ -825,6 +908,27 @@ server <- function(input, output, session) {
       dev.off()
     }
   )
+
+  # Profiles by PARAMETER-Year plots ----------------------------------------------
+  # output$site_prof_plot_param_year <- renderPlot({
+  #   req(reactive_objects$sel_profs_paramyear, input$sel_param)
+  #   site_data_wide <- reactive_objects$sel_profs_paramyear
+  #   site_plottingAR_paramyear(site_data_wide, input$sel_param)
+  # })
+
+  # Download plots button
+  # output$download_site_plot_param_year <- downloadHandler(
+  #   filename = function() {
+  #     paste0(reactive_objects$sel_mlid, "_", input$sel_param, "_byyear.png")
+  #   },
+  #   content = function(file) {
+  #     req(reactive_objects$sel_profs_paramyear, input$sel_param)
+  #     site_data_wide <- reactive_objects$sel_profs_paramyear
+  #     png(file, width = 1000, height = 800)
+  #     site_plottingAR_paramyear(site_data_wide, input$sel_param)
+  #     dev.off()
+  #   }
+  # )
 
   ## Data notice at bottom of app ----------------------------------------------------
   output$data_notice <- renderUI({
