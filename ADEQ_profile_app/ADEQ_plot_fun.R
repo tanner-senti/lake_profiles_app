@@ -120,142 +120,193 @@ profilePlotAR_test <- function(
 # Plotting function from lake_profiles_graphing project, modified to work with app
 # This produces the site profiles (all dates) plots
 # Takes profiles_wide data from app server ---------------------------------------------
-site_plottingAR <- function(site_data) {
+site_plottingAR_interactive <- function(site_data) {
   site_data <- site_data %>%
     mutate(
       across(Date:SiteID, as.character),
-      across(`Temp (°C)`:Depth, as.numeric)
+      across(`Temp (°C)`:Depth, as.numeric),
+      tooltip = paste0(
+        "Date: ",
+        Date,
+        "<br>Depth: ",
+        Depth,
+        " m",
+        "<br>DO: ",
+        `DO (mg/L)`,
+        "<br>Temp: ",
+        `Temp (°C)`,
+        "<br>pH: ",
+        pH
+      )
     )
 
   site_id <- unique(site_data$SiteID)
   lk_name <- unique(site_data$Lake_Name)
 
-  # Creating a custom theme for text size:
-  my_theme <- theme_classic(12) +
+  my_theme <- theme_classic(10) +
     theme(
-      axis.title = element_text(size = 16), # Larger axis titles
-      axis.text = element_text(size = 14), # Larger tick labels
-      plot.title = element_text(size = 18), # Larger plot titles
-      legend.title = element_text(size = 14), # Larger legend title
-      legend.text = element_text(size = 12) # Larger legend text
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.key.size = unit(0.3, "cm"), # Smaller legend keys/symbols
+      legend.spacing.y = unit(0.2, "cm"), # Tighter spacing between items
+      legend.margin = margin(0, 0, 0, 0), # Remove legend margins
+      legend.box.spacing = unit(0.2, "cm"), # Less space around legend box
+      legend.position = "none" # Remove legends from individual plots
     )
 
-  # Plotting:
-
-  # DO:
-  do_p <- ggplot(site_data) +
-    aes(x = `DO (mg/L)`, y = Depth, color = Date) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  do_p <- ggplot(site_data, aes(x = `DO (mg/L)`, y = Depth, color = Date)) +
+    geom_line_interactive(aes(group = Date), orientation = "y") +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
     labs(x = "Dissolved oxygen (mg/L)", y = "Depth (m)") +
     my_theme
 
-  # pH:
-  ph_p <- ggplot(site_data) +
-    aes(x = pH, y = Depth, color = Date) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  ph_p <- ggplot(site_data, aes(x = pH, y = Depth, color = Date)) +
+    geom_line_interactive(aes(group = Date), orientation = "y") +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
     labs(x = "pH", y = "Depth (m)") +
     my_theme
 
-  # Temp:
-  temp_p <- ggplot(site_data) +
-    aes(x = `Temp (°C)`, y = Depth, color = Date) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  temp_p <- ggplot(site_data, aes(x = `Temp (°C)`, y = Depth, color = Date)) +
+    geom_line_interactive(aes(group = Date), orientation = "y") +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
-    labs(x = "Temperature (\u00B0C)", y = "Depth (m)") +
+    labs(x = "Temperature (°C)", y = "Depth (m)") +
     my_theme
 
-  # Add title to the grid with larger font size
-  title <- grid::textGrob(
-    paste0(site_id, " - ", lk_name),
-    gp = grid::gpar(fontsize = 20) # Increase fontsize as needed
-  )
+  # Extract legend from temp_p (before removing it)
+  temp_p_with_legend <- temp_p +
+    theme(legend.position = "right", legend.text = element_text(size = 8))
+  legend <- cowplot::get_legend(temp_p_with_legend)
 
-  # Display plots in a grid:
-  grid.arrange(do_p, ph_p, temp_p, ncol = 2, top = title)
+  # Create the grid layout
+  cowplot::plot_grid(
+    cowplot::ggdraw() +
+      cowplot::draw_label(
+        paste0(site_id, " - ", lk_name),
+        size = 14,
+        hjust = 0.5
+      ),
+    cowplot::plot_grid(
+      do_p,
+      ph_p,
+      temp_p,
+      legend,
+      ncol = 2,
+      rel_widths = c(1, 1)
+    ),
+    ncol = 1,
+    rel_heights = c(0.08, 1)
+  )
 }
 
 # -------------------------------------------------------------------------------------
 # Slightly customzied for the "by year" tab - just different color gradient
-
-site_plottingAR_year <- function(site_data) {
+site_plottingAR_year_interactive <- function(site_data) {
   site_data <- site_data %>%
     mutate(
       across(Date:SiteID, as.character),
       across(`Temp (°C)`:Depth, as.numeric),
       Date = as.Date(Date),
-      Date_f = factor(Date, levels = sort(unique(Date)))
+      Date_f = factor(Date, levels = sort(unique(Date))),
+      tooltip = paste0(
+        "Date: ",
+        Date,
+        "<br>Depth: ",
+        Depth,
+        " m",
+        "<br>DO: ",
+        `DO (mg/L)`,
+        "<br>Temp: ",
+        `Temp (°C)`,
+        "<br>pH: ",
+        pH
+      )
     )
 
   site_id <- unique(site_data$SiteID)
   lk_name <- unique(site_data$Lake_Name)
 
-  # Create color palette based on number of unique dates
   n_dates <- length(unique(site_data$Date_f))
-  date_colors <- colorRampPalette(viridisLite::mako(
-    n_dates,
-    begin = 0.9,
-    end = 0.1
-  ))(n_dates)
+  date_colors <- colorRampPalette(
+    viridisLite::mako(n_dates, begin = 0.9, end = 0.1)
+  )(n_dates)
 
-  # Creating a custom theme for text size:
-  my_theme <- theme_classic(12) +
+  my_theme <- theme_classic(10) +
     theme(
-      axis.title = element_text(size = 16),
-      axis.text = element_text(size = 14),
-      plot.title = element_text(size = 18),
-      legend.title = element_text(size = 14),
-      legend.text = element_text(size = 12)
+      legend.text = element_text(size = 8),
+      legend.title = element_text(size = 10),
+      legend.key.size = unit(0.3, "cm"), # Smaller legend keys/symbols
+      legend.spacing.y = unit(0.2, "cm"), # Tighter spacing between items
+      legend.margin = margin(0, 0, 0, 0), # Remove legend margins
+      legend.box.spacing = unit(0.2, "cm"), # Less space around legend box
+      legend.position = "none" # Remove legends from individual plots
     )
 
-  # DO:
-  do_p <- ggplot(site_data) +
-    aes(x = `DO (mg/L)`, y = Depth, color = Date_f, group = Date_f) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  do_p <- ggplot(site_data, aes(x = `DO (mg/L)`, y = Depth, color = Date_f)) +
+    geom_line_interactive(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
     scale_color_manual(values = date_colors, name = "Date") +
-    labs(x = "Dissolved oxygen (mg/L)", y = "Depth (m)") +
+    labs(x = "Dissolved Oxygen (mg/L)", y = "Depth (m)") +
     my_theme
 
-  # pH:
-  ph_p <- ggplot(site_data) +
-    aes(x = pH, y = Depth, color = Date_f, group = Date_f) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  ph_p <- ggplot(site_data, aes(x = pH, y = Depth, color = Date_f)) +
+    geom_line_interactive(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
     scale_color_manual(values = date_colors, name = "Date") +
     labs(x = "pH", y = "Depth (m)") +
     my_theme
 
-  # Temp:
-  temp_p <- ggplot(site_data) +
-    aes(x = `Temp (°C)`, y = Depth, color = Date_f, group = Date_f) +
-    geom_point() +
-    geom_line(orientation = "y") +
+  temp_p <- ggplot(site_data, aes(x = `Temp (°C)`, y = Depth, color = Date_f)) +
+    geom_line_interactive(
+      aes(group = Date_f),
+      orientation = "y"
+    ) +
+    geom_point_interactive(aes(tooltip = tooltip), size = 1) +
     scale_y_reverse() +
     scale_x_continuous(position = "top") +
     scale_color_manual(values = date_colors, name = "Date") +
-    labs(x = "Temperature (\u00B0C)", y = "Depth (m)") +
+    labs(x = "Temperature (°C)", y = "Depth (m)") +
     my_theme
 
-  # Add title to the grid with larger font size
-  title <- grid::textGrob(
-    paste0(site_id, " - ", lk_name),
-    gp = grid::gpar(fontsize = 20)
-  )
+  # Extract legend from temp_p (before removing it)
+  temp_p_with_legend <- temp_p +
+    theme(legend.position = "right", legend.text = element_text(size = 8))
+  legend <- cowplot::get_legend(temp_p_with_legend)
 
-  # Display plots in a grid:
-  grid.arrange(do_p, ph_p, temp_p, ncol = 2, top = title)
+  # Create plot grid:
+  cowplot::plot_grid(
+    cowplot::ggdraw() +
+      cowplot::draw_label(
+        paste0(site_id, " - ", lk_name),
+        size = 14,
+        hjust = 0.5
+      ),
+    cowplot::plot_grid(
+      do_p,
+      ph_p,
+      temp_p,
+      legend,
+      ncol = 2,
+      rel_widths = c(1, 1)
+    ),
+    ncol = 1,
+    rel_heights = c(0.08, 1)
+  )
 }
 
 # Framework for a tab with a separate plot for each year, and the dropdown
@@ -332,4 +383,83 @@ site_plottingAR_year <- function(site_data) {
 #
 #   # arrange all year plots in grid
 #   gridExtra::grid.arrange(grobs = year_plots, ncol = 2, top = title)
+# }
+
+# site_plottingAR_interactive <- function(site_data) {
+#   site_data <- site_data %>%
+#     mutate(
+#       across(Date:SiteID, as.character),
+#       across(`Temp (°C)`:Depth, as.numeric),
+#       tooltip = paste0(
+#         "Date: ",
+#         Date,
+#         "<br>Depth: ",
+#         Depth,
+#         " m",
+#         "<br>DO: ",
+#         `DO (mg/L)`,
+#         "<br>Temp: ",
+#         `Temp (°C)`,
+#         "<br>pH: ",
+#         pH
+#       )
+#     )
+#
+#   site_id <- unique(site_data$SiteID)
+#   lk_name <- unique(site_data$Lake_Name)
+#
+#   my_theme <- theme_classic(10) +
+#     theme(
+#       legend.text = element_text(size = 8),
+#       legend.title = element_text(size = 8), # Smaller legend title
+#       legend.key.size = unit(0.3, "cm"), # Smaller legend keys/symbols
+#       legend.spacing.y = unit(0.15, "cm"), # Tighter spacing between items
+#       legend.margin = margin(0, 0, 0, 0), # Remove legend margins
+#       legend.box.spacing = unit(0.2, "cm") # Less space around legend box
+#     )
+#
+#   do_p <- ggplot(site_data, aes(x = `DO (mg/L)`, y = Depth, color = Date)) +
+#     geom_line_interactive(
+#       aes(group = Date),
+#       orientation = "y"
+#     ) +
+#     geom_point_interactive(aes(tooltip = tooltip), size = 1) +
+#     scale_y_reverse() +
+#     scale_x_continuous(position = "top") +
+#     labs(x = "Dissolved oxygen (mg/L)", y = "Depth (m)") +
+#     my_theme
+#
+#   ph_p <- ggplot(site_data, aes(x = pH, y = Depth, color = Date)) +
+#     geom_line_interactive(
+#       aes(group = Date),
+#       orientation = "y"
+#     ) +
+#     geom_point_interactive(aes(tooltip = tooltip), size = 1) +
+#     scale_y_reverse() +
+#     scale_x_continuous(position = "top") +
+#     labs(x = "pH", y = "Depth (m)") +
+#     my_theme
+#
+#   temp_p <- ggplot(site_data, aes(x = `Temp (°C)`, y = Depth, color = Date)) +
+#     geom_line_interactive(
+#       aes(group = Date),
+#       orientation = "y"
+#     ) +
+#     geom_point_interactive(aes(tooltip = tooltip), size = 1) +
+#     scale_y_reverse() +
+#     scale_x_continuous(position = "top") +
+#     labs(x = "Temperature (°C)", y = "Depth (m)") +
+#     my_theme
+#
+#   cowplot::plot_grid(
+#     cowplot::ggdraw() +
+#       cowplot::draw_label(
+#         paste0(site_id, " - ", lk_name),
+#         size = 14,
+#         hjust = 0.5
+#       ),
+#     cowplot::plot_grid(do_p, ph_p, temp_p, ncol = 2, rel_widths = c(1, 1)),
+#     ncol = 1,
+#     rel_heights = c(0.08, 1)
+#   )
 # }

@@ -23,7 +23,8 @@ required_packages <- (c(
   "markdown",
   "gridExtra",
   "bslib",
-  "ggiraph"
+  "ggiraph",
+  "cowplot"
 ))
 
 # Check and install
@@ -49,7 +50,9 @@ if (Sys.getenv("SHINY_PORT") == "") {
     "shiny",
     "markdown",
     "gridExtra",
-    "bslib"
+    "bslib",
+    "ggiraph",
+    "cowplot"
   )
   check_and_install(required_packages)
 } else {
@@ -62,6 +65,7 @@ if (Sys.getenv("SHINY_PORT") == "") {
   library(gridExtra)
   library(bslib)
   library(ggiraph)
+  library(cowplot)
 }
 
 #library(wqTools)
@@ -210,7 +214,7 @@ ui <- page_fluid(
             fluidRow(
               column(
                 12,
-                h4("Profile plot:", style = "color: #666666;"),
+                #h4("Profile plot:", style = "color: #666666;"),
                 div(
                   girafeOutput("ind_prof_plot_test", height = "500px"),
                   style = "max-width: 600px; margin-top: -8px;"
@@ -245,10 +249,10 @@ ui <- page_fluid(
             ),
             fluidRow(column(
               12,
-              h4("Parameter profiles:", style = "color: #666666;"),
+              #h4("Parameter profiles:", style = "color: #666666;"),
               div(
-                plotOutput("site_prof_plot", height = "600px"),
-                style = "max-width: 800px"
+                girafeOutput("site_prof_plot", height = "620px"),
+                style = "max-width: 800px;"
               ),
               downloadButton(
                 "download_site_plot",
@@ -272,9 +276,9 @@ ui <- page_fluid(
             fluidRow(
               column(
                 12,
-                h4("Parameter profiles (by year):", style = "color: #666666;"),
+                #h4("Parameter profiles (by year):", style = "color: #666666;"),
                 div(
-                  plotOutput("site_prof_plot_year", height = "600px"),
+                  girafeOutput("site_prof_plot_year", height = "620px"),
                   style = "max-width: 800px"
                 ),
                 downloadButton(
@@ -863,13 +867,17 @@ server <- function(input, output, session) {
     ]
   })
 
-  output$site_prof_plot = renderPlot({
+  output$site_prof_plot <- renderGirafe({
     req(reactive_objects$sel_profs_wide)
     site_data_wide <- reactive_objects$sel_profs_wide
 
-    # plotting function with args
-    site_plottingAR(site_data_wide)
-    #box()
+    girafe(
+      ggobj = site_plottingAR_interactive(site_data_wide),
+      options = list(
+        opts_toolbar(saveaspng = FALSE),
+        opts_hover(css = "fill:red;stroke:black;")
+      )
+    )
   })
 
   # Download plots button for all dates plots
@@ -880,17 +888,23 @@ server <- function(input, output, session) {
     content = function(file) {
       req(reactive_objects$sel_profs_wide)
       site_data_wide <- reactive_objects$sel_profs_wide
-      png(file, width = 1000, height = 800) # Adjust size as needed
-      site_plottingAR(site_data_wide)
-      dev.off()
+      p <- site_plottingAR(site_data_wide) # returns ggplot object
+      ggsave(file, plot = p, width = 10, height = 8, dpi = 300)
     }
   )
 
   # Profiles by year plots ------------------------------------------------------
-  output$site_prof_plot_year <- renderPlot({
+  output$site_prof_plot_year <- renderGirafe({
     req(reactive_objects$sel_profs_year)
     site_data_wide <- reactive_objects$sel_profs_year
-    site_plottingAR_year(site_data_wide)
+
+    girafe(
+      ggobj = site_plottingAR_year_interactive(site_data_wide),
+      options = list(
+        opts_toolbar(saveaspng = FALSE),
+        opts_hover(css = "fill:red;stroke:black;")
+      )
+    )
   })
 
   # Download plots button for profiles by year
@@ -901,9 +915,8 @@ server <- function(input, output, session) {
     content = function(file) {
       req(reactive_objects$sel_profs_year)
       site_data_wide <- reactive_objects$sel_profs_year
-      png(file, width = 1000, height = 800)
-      site_plottingAR(site_data_wide)
-      dev.off()
+      p <- site_plottingAR_year(site_data_wide) # static version
+      ggsave(file, plot = p, width = 10, height = 8, dpi = 300)
     }
   )
 
