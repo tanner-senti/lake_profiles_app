@@ -62,247 +62,257 @@ ui <- page_fluid(
   ),
 
   div(
-    style = "margin: 15px;", # space on all sides
+    style = "display: flex; justify-content: center;",
+    div(
+      style = "max-width: 1400px; width: 100%; margin: 15px;",
 
-    tags$head(
-      tags$script(
-        src = "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
-        type = "text/javascript"
-      )
-    ),
-
-    # Header
-    headerPanel(
-      title = tags$a(
-        href = 'https://www.adeq.state.ar.us/water/',
-        tags$img(
-          src = 'adeq_logo.png',
-          height = 125,
-          width = 100 * 2.85 * 1.75
-        ),
-        target = "_blank"
-      ),
-    ),
-    # Heading under the logo:
-    fluidRow(
-      column(
-        12,
-        h4(
-          "Lake Vertical Profiles Dashboard",
-          style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"
-        ),
-        p(
-          "Disclaimer: Data are provisional and not for official use",
-          style = "margin-left: 60px; margin-top: -5px; font-size: 90%; color: #D9534F;"
+      tags$head(
+        tags$script(
+          src = "https://cdnjs.cloudflare.com/ajax/libs/iframe-resizer/3.5.16/iframeResizer.contentWindow.min.js",
+          type = "text/javascript"
         )
-      )
-    ),
-    # Disclaimer text if needed:
-    # fluidRow(column(
-    #   p(
-    #     "Lakes Profiles Dashboard"
-    #   ),
-    #   width = 2
-    # )),
-    # User guide button:
-    fluidRow(column(
-      2,
-      actionButton("show_guide", "Show User Guide", style = "margin-top: 10px;")
-    )),
+      ),
 
-    br(),
-
-    # Input widgets
-    fluidRow(
-      column(
-        5,
-        conditionalPanel(
-          condition = "input.plot_tabs!='User guide'",
-          tabsetPanel(
-            id = "ui_tab",
-            tabPanel(
-              "Map",
-              column(
-                12,
-                h5(
-                  "Click a site to display plots",
-                  style = "color: #666666; margin-top: 10px;"
-                )
-              ),
-              column(
-                12,
-                shinycssloaders::withSpinner(
-                  leaflet::leafletOutput("map", height = "440px"),
-                  size = 2,
-                  color = "#0080b7"
-                )
-              )
-            ),
-            tabPanel(
-              "Table",
-              column(
-                12,
-                h5(
-                  "Click a site to display plots",
-                  style = "color: #666666; margin-top: 10px;"
-                ),
-                div(DT::dataTableOutput("table_input"), style = "font-size:70%")
-              )
-            )
+      # Header
+      headerPanel(
+        title = tags$a(
+          href = 'https://www.adeq.state.ar.us/water/',
+          tags$img(
+            src = 'adeq_logo.png',
+            height = 125,
+            width = 100 * 2.85 * 1.75
           ),
-
-          # Always-visible profile table under both tabs
-          column(
-            12,
-            h5(
-              "Profile data table:",
-              style = "color: #666666; margin-top: 10px;"
-            ),
-            div(
-              DT::dataTableOutput("profile_table"),
-              style = "font-size:80%;"
-            ),
-            downloadButton(
-              "download_profile_csv",
-              "Download CSV",
-              style = "margin-top: 5px;  background-color: #0080b7; color: white;"
-            )
+          target = "_blank"
+        ),
+      ),
+      # Heading under the logo:
+      fluidRow(
+        column(
+          12,
+          h4(
+            "Lake Vertical Profiles Dashboard",
+            style = "margin-top: 10px; margin-left: 60px; color: #0DA5B5;"
+          ),
+          p(
+            "Disclaimer: Data are provisional and not for official use",
+            style = "margin-left: 60px; margin-top: -5px; font-size: 90%; color: #D9534F;"
           )
-        ),
-        conditionalPanel(
-          condition = "input.plot_tabs=='User guide'",
-          column(12)
         )
       ),
-      column(
-        7,
-        tabsetPanel(
-          id = "plot_tabs",
-          tabPanel(
-            "Individual profiles",
-            fluidRow(column(
-              4,
-              div(
-                uiOutput("date_select"),
-                style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
-              )
-            )),
-            fluidRow(
-              column(
-                12,
-                #h4("Profile plot:", style = "color: #666666;"),
-                div(
-                  girafeOutput("ind_prof_plot_test", height = "500px"),
-                  style = "max-width: 600px; margin-top: -8px;"
+      # Disclaimer text if needed:
+      # fluidRow(column(
+      #   p(
+      #     "Lakes Profiles Dashboard"
+      #   ),
+      #   width = 2
+      # )),
+      # User guide button:
+      fluidRow(column(
+        2,
+        actionButton(
+          "show_guide",
+          "Show User Guide",
+          style = "margin-top: 10px;"
+        )
+      )),
+
+      br(),
+
+      # Input widgets
+      fluidRow(
+        column(
+          5,
+          conditionalPanel(
+            condition = "input.plot_tabs!='User guide'",
+            tabsetPanel(
+              id = "ui_tab",
+              tabPanel(
+                "Map",
+                column(
+                  12,
+                  h5(
+                    "Click a site to display plots",
+                    style = "color: #666666; margin-top: 10px;"
+                  )
                 ),
-                downloadButton(
-                  "download_profile_plot",
-                  "Download Plot",
-                  style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
-                )
-              )
-            ),
-            br()
-          ),
-          tabPanel(
-            "Site profiles (all dates)",
-            # fluidRow(column(4, uiOutput("date_slider"))),
-            fluidRow(
-              column(
-                4,
-                div(
-                  uiOutput("start_date_select"),
-                  style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+                column(
+                  12,
+                  shinycssloaders::withSpinner(
+                    leaflet::leafletOutput("map", height = "440px"),
+                    size = 2,
+                    color = "#0080b7"
+                  )
                 )
               ),
-              column(
-                4,
-                div(
-                  uiOutput("end_date_select"),
-                  style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+              tabPanel(
+                "Table",
+                column(
+                  12,
+                  h5(
+                    "Click a site to display plots",
+                    style = "color: #666666; margin-top: 10px;"
+                  ),
+                  div(
+                    DT::dataTableOutput("table_input"),
+                    style = "font-size:70%"
+                  )
                 )
               )
             ),
-            fluidRow(column(
+
+            # Always-visible profile table under both tabs
+            column(
               12,
-              #h4("Parameter profiles:", style = "color: #666666;"),
+              h5(
+                "Profile data table:",
+                style = "color: #666666; margin-top: 10px;"
+              ),
               div(
-                girafeOutput("site_prof_plot", height = "620px"),
-                style = "max-width: 800px;"
+                DT::dataTableOutput("profile_table"),
+                style = "font-size:80%;"
               ),
               downloadButton(
-                "download_site_plot",
-                "Download Plots",
-                style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+                "download_profile_csv",
+                "Download CSV",
+                style = "margin-top: 5px;  background-color: #0080b7; color: white;"
               )
-            )),
-            br()
+            )
           ),
-          tabPanel(
-            "Site profiles by year",
-            fluidRow(
-              column(
+          conditionalPanel(
+            condition = "input.plot_tabs=='User guide'",
+            column(12)
+          )
+        ),
+        column(
+          7,
+          tabsetPanel(
+            id = "plot_tabs",
+            tabPanel(
+              "Individual profiles",
+              fluidRow(column(
                 4,
                 div(
-                  uiOutput("year_select"),
+                  uiOutput("date_select"),
                   style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
                 )
-              )
+              )),
+              fluidRow(
+                column(
+                  12,
+                  #h4("Profile plot:", style = "color: #666666;"),
+                  div(
+                    girafeOutput("ind_prof_plot_test", height = "500px"),
+                    style = "max-width: 600px; margin-top: -8px;"
+                  ),
+                  downloadButton(
+                    "download_profile_plot",
+                    "Download Plot",
+                    style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+                  )
+                )
+              ),
+              br()
             ),
-            fluidRow(
-              column(
+            tabPanel(
+              "Site profiles (all dates)",
+              # fluidRow(column(4, uiOutput("date_slider"))),
+              fluidRow(
+                column(
+                  4,
+                  div(
+                    uiOutput("start_date_select"),
+                    style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+                  )
+                ),
+                column(
+                  4,
+                  div(
+                    uiOutput("end_date_select"),
+                    style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+                  )
+                )
+              ),
+              fluidRow(column(
                 12,
-                #h4("Parameter profiles (by year):", style = "color: #666666;"),
+                #h4("Parameter profiles:", style = "color: #666666;"),
                 div(
-                  girafeOutput("site_prof_plot_year", height = "620px"),
-                  style = "max-width: 800px"
+                  girafeOutput("site_prof_plot", height = "620px"),
+                  style = "max-width: 800px;"
                 ),
                 downloadButton(
-                  "download_site_plot_year",
-                  "Download Yearly Plots",
+                  "download_site_plot",
+                  "Download Plots",
                   style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
                 )
-              )
+              )),
+              br()
             ),
-            br()
-          ),
-          # tabPanel(
-          #   "Site profiles by parameter-year",
-          #   fluidRow(
-          #     column(
-          #       4,
-          #       div(
-          #         uiOutput("param_select"),
-          #         style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
-          #       )
-          #     )
-          #   ),
-          #   fluidRow(
-          #     column(
-          #       12,
-          #       h4("Parameter profiles (by year):", style = "color: #666666;"),
-          #       div(
-          #         plotOutput("site_prof_plot_param_year", height = "600px"),
-          #         style = "max-width: 800px"
-          #       ),
-          #       downloadButton(
-          #         "download_site_plot_param_year",
-          #         "Download Yearly Plots",
-          #         style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
-          #       )
-          #     )
-          #   ),
-          #   br()
-          # ),
+            tabPanel(
+              "Site profiles by year",
+              fluidRow(
+                column(
+                  4,
+                  div(
+                    uiOutput("year_select"),
+                    style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+                  )
+                )
+              ),
+              fluidRow(
+                column(
+                  12,
+                  #h4("Parameter profiles (by year):", style = "color: #666666;"),
+                  div(
+                    girafeOutput("site_prof_plot_year", height = "620px"),
+                    style = "max-width: 800px"
+                  ),
+                  downloadButton(
+                    "download_site_plot_year",
+                    "Download Yearly Plots",
+                    style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+                  )
+                )
+              ),
+              br()
+            ),
+            # tabPanel(
+            #   "Site profiles by parameter-year",
+            #   fluidRow(
+            #     column(
+            #       4,
+            #       div(
+            #         uiOutput("param_select"),
+            #         style = "font-family: 'Roboto Slab', serif; font-size: 22px; color: #666666; margin-top: 10px;"
+            #       )
+            #     )
+            #   ),
+            #   fluidRow(
+            #     column(
+            #       12,
+            #       h4("Parameter profiles (by year):", style = "color: #666666;"),
+            #       div(
+            #         plotOutput("site_prof_plot_param_year", height = "600px"),
+            #         style = "max-width: 800px"
+            #       ),
+            #       downloadButton(
+            #         "download_site_plot_param_year",
+            #         "Download Yearly Plots",
+            #         style = "margin-top: 5px; margin-left: 10px; background-color: #0080b7; color: white;"
+            #       )
+            #     )
+            #   ),
+            #   br()
+            # ),
+          )
         )
+      ),
+
+      uiOutput("data_notice"),
+
+      tags$footer(
+        "Arkansas Division of Environmental Quality - Lake Vertical Profiles Dashboard",
+        style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
       )
-    ),
-
-    uiOutput("data_notice"),
-
-    tags$footer(
-      "Arkansas Division of Environmental Quality - Lake Vertical Profiles Dashboard",
-      style = "text-align: center; padding: 10px; font-size: 80%; color: #777;"
     )
   )
 )
