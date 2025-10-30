@@ -1,7 +1,9 @@
 ## Modified app by Tanner Senti (2024-12-31)
 
-# Data come from "lake_profiles_graphing" project at
-# E:\LAKES\Quarterly Lakes Study\2023 - 2026 Lakes Study\Lake Profiles
+### IMPORTANT: DATA SOURCE INFO ###############################################
+# Data come from "LakeProfiles_Cleaning_Graphing" project at
+# E:\LAKES\Quarterly Lakes Study\LakeProfiles_Cleaning_Graphing
+###############################################################################
 
 # Function to check and install packages (only used locally)
 check_and_install <- function(packages) {
@@ -334,6 +336,12 @@ server <- function(input, output, session) {
   })
 
   # Data work ---------------------------------------------------------------
+
+  ### Data note ###
+  # Profiles are currently stored in 'wide' format all together in one
+  # .csv file. This works well for now for deployed shiny apps, however
+  # once this file gets larger than 10 MB, convert to a duck.db file
+  ######################################################################
 
   # Find the latest file ending with date pattern _YYYY-MM-DD.csv
   latest_file <- list.files(
